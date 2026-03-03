@@ -89,11 +89,11 @@ export function DashboardClient() {
             <TreePine className="h-6 w-6 text-primary" />
             <h1 className="text-2xl font-bold">
               {profileLoading ? (
-                <Skeleton className="h-7 w-48 inline-block" />
-              ) : profile?.name ? (
-                `你好，${profile.name}`
+                <Skeleton className="h-7 w-48" />
               ) : (
-                '欢迎使用 darkforest'
+                <span className="text-gradient-cyber">
+                  {profile?.name ? `你好，${profile.name}` : '欢迎使用 darkforest'}
+                </span>
               )}
             </h1>
           </div>
@@ -148,7 +148,7 @@ export function DashboardClient() {
                 const Icon = card.icon;
                 return (
                   <Link key={card.label} href={card.href}>
-                    <Card className="glow-card-hover cursor-pointer">
+                    <Card className="glow-card-hover cursor-pointer corner-bracket">
                       <CardContent className="p-4 space-y-2">
                         <Icon className={`h-5 w-5 ${card.color}`} />
                         <div>
@@ -165,7 +165,7 @@ export function DashboardClient() {
 
           {/* Quick links */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Card className="glow-card-hover">
+            <Card className="glow-card-hover corner-bracket">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Target className="h-4 w-4 text-primary" />
@@ -182,7 +182,7 @@ export function DashboardClient() {
               </CardContent>
             </Card>
 
-            <Card className="glow-card-hover">
+            <Card className="glow-card-hover corner-bracket">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Zap className="h-4 w-4 text-amber-400" />

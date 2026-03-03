@@ -46,7 +46,7 @@ export default function MatchPage() {
   return (
     <div className="h-full flex flex-col gap-4 p-6 max-w-7xl mx-auto w-full">
       <div>
-        <h1 className="text-2xl font-bold">JD 匹配分析</h1>
+        <h1 className="text-2xl font-bold"><span className="text-gradient-cyber">JD 匹配分析</span></h1>
         <p className="text-sm text-muted-foreground mt-0.5">
           选择或解析一份职位描述，AI 将分析你的简历与该职位的匹配度
         </p>

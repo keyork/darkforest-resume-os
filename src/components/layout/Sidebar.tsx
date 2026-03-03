@@ -29,7 +29,11 @@ export function Sidebar() {
       {/* Logo */}
       <div className="h-14 flex items-center gap-2 px-4 border-b border-border/50">
         <TreePine className="h-5 w-5 text-primary drop-shadow-[0_0_6px_hsl(195_100%_50%/0.8)]" />
-        <span className="font-semibold text-sm tracking-tight">darkforest</span>
+        <span className="font-bold text-sm tracking-tight text-gradient-cyber">darkforest</span>
+        <span
+          title="online"
+          className="ml-auto w-2 h-2 rounded-full bg-emerald-400 cyber-dot shadow-[0_0_6px_hsl(145_80%_60%/1)] flex-shrink-0"
+        />
       </div>
 
       {/* Nav */}
@@ -45,9 +49,9 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors border',
+                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all border',
                 isActive
-                  ? 'bg-primary/10 text-primary border-primary/30 glow-primary'
+                  ? 'bg-primary/10 text-primary border-primary/20 border-l-2 border-l-primary glow-primary'
                   : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-accent/50'
               )}
             >
@@ -64,8 +68,12 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-border/50">
-        <p className="text-xs text-muted-foreground">v0.1.0</p>
+      <div className="p-4 border-t border-border/50 space-y-1">
+        <p className="text-xs font-mono tracking-widest text-muted-foreground/50">SYS v0.1.0</p>
+        <p className="text-xs font-mono text-emerald-400/70 flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 cyber-dot inline-block" />
+          ONLINE
+        </p>
       </div>
     </aside>
   );

@@ -55,28 +55,86 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Nebula glows + embedded star spots */
     background-image:
-      radial-gradient(ellipse at 50% 0%, hsl(270 60% 8% / 0.6) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 100%, hsl(195 80% 6% / 0.4) 0%, transparent 50%);
+      radial-gradient(ellipse at 50% 0%,   hsl(270 60%  8% / 0.60) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, hsl(195 80%  6% / 0.40) 0%, transparent 50%),
+      /* bright star spots */
+      radial-gradient(1.5px 1.5px at 15% 22%, hsl(195 100% 90% / 0.70) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 78%  8%, hsl(270  90% 85% / 0.55) 0%, transparent 100%),
+      radial-gradient(2px   2px   at 44% 67%, hsl(195 100% 88% / 0.50) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 91% 38%, hsl(210 100% 90% / 0.60) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 27% 89%, hsl(270  80% 80% / 0.45) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 61% 31%, hsl(195 100% 82% / 0.40) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at  7% 54%, hsl(195 100% 88% / 0.35) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 53% 11%, hsl(270  90% 85% / 0.50) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 35% 43%, hsl(195 100% 85% / 0.30) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 83% 76%, hsl(270  90% 80% / 0.40) 0%, transparent 100%);
     background-attachment: fixed;
   }
 }
 
-/* Dot-grid starfield overlay */
+/* Dot-grid starfield */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  background-image: radial-gradient(circle, hsl(210 40% 80% / 0.10) 1px, transparent 1px);
+  background-image: radial-gradient(circle, hsl(210 40% 80% / 0.08) 1px, transparent 1px);
   background-size: 32px 32px;
+}
+
+/* CRT scanlines */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    hsl(220 100% 100% / 0.013) 3px,
+    hsl(220 100% 100% / 0.013) 4px
+  );
 }
 
 body > div {
   position: relative;
   z-index: 1;
 }
+
+/* ── Keyframes ─────────────────────────────────────────────────────────── */
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes cyber-blink {
+  0%, 85%, 100% { opacity: 1; }
+  92%            { opacity: 0.15; }
+}
+
+@keyframes pulse-glow-anim {
+  0%, 100% {
+    box-shadow:
+      0 0  8px hsl(195 100% 50% / 0.45),
+      0 0 20px hsl(195 100% 50% / 0.20),
+      inset 0 0 8px hsl(195 100% 50% / 0.04);
+  }
+  50% {
+    box-shadow:
+      0 0 14px hsl(195 100% 50% / 0.70),
+      0 0 35px hsl(195 100% 50% / 0.35),
+      0 0 60px hsl(195 100% 50% / 0.15),
+      inset 0 0 12px hsl(195 100% 50% / 0.06);
+  }
+}
+
+/* ── Component utilities ────────────────────────────────────────────────── */
 
 @layer components {
   .glass-panel {
@@ -86,11 +144,9 @@ body > div {
     border: 1px solid hsl(var(--border));
   }
 
+  /* Animated neon glow on active elements */
   .glow-primary {
-    box-shadow:
-      0 0 8px hsl(195 100% 50% / 0.45),
-      0 0 20px hsl(195 100% 50% / 0.2),
-      inset 0 0 8px hsl(195 100% 50% / 0.04);
+    animation: pulse-glow-anim 2.5s ease-in-out infinite;
   }
 
   .glow-card-hover {
@@ -99,5 +155,46 @@ body > div {
   .glow-card-hover:hover {
     box-shadow: 0 0 14px hsl(195 100% 50% / 0.18);
     border-color: hsl(195 100% 50% / 0.28);
+  }
+
+  /* Cyan → violet gradient text */
+  .text-gradient-cyber {
+    background: linear-gradient(135deg, hsl(195 100% 65%) 0%, hsl(270 90% 72%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Pulsing indicator dot */
+  .cyber-dot {
+    animation: cyber-blink 4s ease-in-out infinite;
+  }
+
+  /* Cyberpunk corner brackets on cards */
+  .corner-bracket {
+    position: relative;
+  }
+  .corner-bracket::before,
+  .corner-bracket::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: hsl(195 100% 50% / 0.50);
+    border-style: solid;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .corner-bracket::before {
+    top: -1px;
+    left: -1px;
+    border-width: 1.5px 0 0 1.5px;
+    border-radius: 2px 0 0 0;
+  }
+  .corner-bracket::after {
+    bottom: -1px;
+    right: -1px;
+    border-width: 0 1.5px 1.5px 0;
+    border-radius: 0 0 2px 0;
   }
 }
