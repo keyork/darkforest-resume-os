@@ -1,5 +1,6 @@
 import { callAgent } from '../client';
 import { PROFILE_AGENT_SYSTEM_PROMPT } from '../prompts';
+import type { AIClientConfig } from '../config';
 import type {
   SkillData,
   ExperienceData,
@@ -27,7 +28,10 @@ export interface ParsedProfile {
 // characters (~3 000 tokens) so the model has plenty of room for its JSON output.
 const MAX_RESUME_CHARS = 12_000;
 
-export async function parseProfileFromText(rawText: string): Promise<ParsedProfile> {
+export async function parseProfileFromText(
+  rawText: string,
+  clientConfig: AIClientConfig,
+): Promise<ParsedProfile> {
   const truncated =
     rawText.length > MAX_RESUME_CHARS
       ? rawText.slice(0, MAX_RESUME_CHARS) + '\n\n[...truncated for length]'
@@ -36,6 +40,7 @@ export async function parseProfileFromText(rawText: string): Promise<ParsedProfi
   const result = await callAgent<ParsedProfile>({
     systemPrompt: PROFILE_AGENT_SYSTEM_PROMPT,
     userMessage: `Parse the following resume:\n\n${truncated}`,
+    clientConfig,
     maxTokens: 16_384,
   });
 

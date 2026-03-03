@@ -6,6 +6,7 @@ import { jobDescriptions } from '@/lib/db/schema';
 import { desc } from 'drizzle-orm';
 import { customAlphabet } from 'nanoid';
 import { parseJDFromText } from '@/lib/ai/agents/jd-parser-agent';
+import { getAIClientConfigFromHeaders, isMissingAIClientConfigError } from '@/lib/ai/config';
 import type { JobDescription, ParsedJD } from '@/lib/types/jd';
 
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 12);
@@ -38,6 +39,7 @@ export async function GET(): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const clientConfig = getAIClientConfigFromHeaders(request.headers);
     const body = await request.json() as { text: string };
     const { text } = body;
 
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Missing required field: text' }, { status: 400 });
     }
 
-    const parsed = await parseJDFromText(text);
+    const parsed = await parseJDFromText(text, clientConfig);
 
     const id = `jd_${nanoid()}`;
     const now = new Date().toISOString();
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to create job description', details: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
+      { status: isMissingAIClientConfigError(error) ? 400 : 500 }
     );
   }
 }

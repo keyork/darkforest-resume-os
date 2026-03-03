@@ -3,10 +3,11 @@
 export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
+import { isAgentTaskTerminatedError } from '@/components/agent/AgentTaskProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2, Orbit, Sparkles } from 'lucide-react';
 import { StrategyPanel, type StrategyConfig } from '@/components/generate/StrategyPanel';
 import { ResumePreview } from '@/components/generate/ResumePreview';
 import { ExportButtons } from '@/components/generate/ExportButtons';
@@ -28,7 +29,6 @@ import {
 } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-
 export default function GeneratePage() {
   const [strategy, setStrategy] = useState<StrategyConfig>({
     narrative: 'achievement',
@@ -47,24 +47,45 @@ export default function GeneratePage() {
   const deleteResume = useDeleteGeneratedResume();
 
   async function handleGenerate() {
-    const result = await generateResume.mutateAsync({
-      ...strategy,
-      jdId: selectedJdId !== 'none' ? selectedJdId : undefined,
-      matchResultId: selectedMatchId !== 'none' ? selectedMatchId : undefined,
-    });
-    setActiveResumeId(result.id);
+    try {
+      const result = await generateResume.mutateAsync({
+        ...strategy,
+        jdId: selectedJdId !== 'none' ? selectedJdId : undefined,
+        matchResultId: selectedMatchId !== 'none' ? selectedMatchId : undefined,
+      });
+      setActiveResumeId(result.id);
+    } catch (error) {
+      if (isAgentTaskTerminatedError(error)) {
+        return;
+      }
+    }
   }
 
   return (
-    <div className="h-full flex flex-col gap-4 p-6 max-w-7xl mx-auto w-full">
-      <div>
-        <h1 className="text-2xl font-bold">简历生成</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          选择叙事策略，AI 将基于你的简历数据生成一份 Markdown 简历
-        </p>
-      </div>
+    <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
+      <section className="surface-panel relative overflow-hidden rounded-[32px] px-6 py-7 sm:px-8">
+        <div className="absolute -right-10 top-2 h-36 w-36 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-solar)/0.18)_0%,transparent_72%)] blur-2xl" />
+        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1 text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+              <Orbit className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
+              Resume Forge
+            </div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+              <span className="text-gradient-cyber">简历生成</span>
+            </h1>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+              选择叙事策略、语言和上下文，让 AI 输出一份能直接复制、下载、继续微调的 Markdown 简历。
+            </p>
+          </div>
+          <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-background/40 px-3 py-1.5 text-xs text-muted-foreground sm:flex">
+            <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-jade))]" />
+            Strategy-guided generation
+          </div>
+        </div>
+      </section>
 
-      <div className="flex-1 grid grid-cols-[320px_1fr] gap-4 min-h-0">
+      <div className="grid flex-1 gap-4 min-h-0 xl:grid-cols-[320px_minmax(0,1fr)]">
         {/* Left panel */}
         <div className="flex flex-col gap-4 min-h-0">
           <StrategyPanel value={strategy} onChange={setStrategy} />

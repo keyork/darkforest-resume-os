@@ -27,11 +27,10 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Item, ItemType, SkillItem, ExperienceItem, ProjectItem, EducationItem, CertificationItem } from '@/lib/types/item';
+import type { Item, SkillItem, ExperienceItem, ProjectItem, EducationItem, CertificationItem } from '@/lib/types/item';
 import { SKILL_LEVEL_LABELS, SKILL_CATEGORY_LABELS } from '@/lib/types/item';
 import { useToggleVisibility, useDeleteItem } from '@/lib/hooks/useItems';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
 
 interface ItemCardProps {
   item: Item;
@@ -41,7 +40,10 @@ function SourceBadge({ source }: { source: Item['source'] }) {
   if (source === 'manual') return null;
   if (source === 'ai_parsed') {
     return (
-      <Badge variant="outline" className="text-xs gap-1 border-blue-300 text-blue-600 bg-blue-50">
+      <Badge
+        variant="outline"
+        className="gap-1 border-[hsl(var(--signal-solar)/0.35)] bg-[hsl(var(--signal-solar)/0.12)] text-xs text-[hsl(var(--signal-solar))]"
+      >
         <Sparkles className="h-3 w-3" /> AI 解析
       </Badge>
     );
@@ -208,7 +210,7 @@ export function ItemCard({ item }: ItemCardProps) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group flex items-start gap-2 p-3 border rounded-lg bg-card transition-all',
+        'group flex items-start gap-2 rounded-[24px] border border-border/70 bg-card/90 p-3 transition-all',
         item.visible ? '' : 'opacity-60 bg-muted/30',
         isDragging && 'opacity-50 shadow-lg z-50'
       )}

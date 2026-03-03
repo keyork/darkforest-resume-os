@@ -4,56 +4,268 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 32 44% 95%;
+    --background-alt: 28 35% 91%;
+    --foreground: 18 22% 14%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 18 22% 14%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --radius: 0.5rem;
+    --popover-foreground: 18 22% 14%;
+    --primary: 24 86% 52%;
+    --primary-foreground: 36 100% 98%;
+    --secondary: 153 34% 35%;
+    --secondary-foreground: 43 100% 97%;
+    --muted: 30 28% 89%;
+    --muted-foreground: 18 14% 37%;
+    --accent: 24 52% 86%;
+    --accent-foreground: 18 22% 16%;
+    --destructive: 356 71% 52%;
+    --destructive-foreground: 43 100% 97%;
+    --border: 25 25% 80%;
+    --input: 25 25% 80%;
+    --ring: 24 86% 52%;
+    --radius: 1rem;
+    --surface-strong: 34 62% 98%;
+    --surface-soft: 26 44% 92%;
+    --glow-rose: 345 74% 64%;
+    --glow-solar: 28 92% 58%;
+    --glow-jade: 152 42% 43%;
+    --star-color: 22 40% 36%;
+    --grid-color: 24 24% 55%;
+    --shadow-color: 18 30% 20%;
+    --signal-solar: 28 92% 58%;
+    --signal-jade: 152 42% 42%;
+    --signal-rose: 345 74% 62%;
+    --signal-gold: 43 89% 56%;
+    --signal-ink: 215 35% 36%;
+    color-scheme: light;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --background: 18 28% 7%;
+    --background-alt: 22 24% 11%;
+    --foreground: 34 52% 93%;
+    --card: 16 22% 12%;
+    --card-foreground: 34 52% 93%;
+    --popover: 16 22% 12%;
+    --popover-foreground: 34 52% 93%;
+    --primary: 24 92% 60%;
+    --primary-foreground: 22 38% 9%;
+    --secondary: 152 35% 58%;
+    --secondary-foreground: 20 30% 10%;
+    --muted: 18 17% 18%;
+    --muted-foreground: 31 16% 68%;
+    --accent: 344 38% 18%;
+    --accent-foreground: 34 52% 93%;
+    --destructive: 354 86% 65%;
+    --destructive-foreground: 14 44% 10%;
+    --border: 20 16% 24%;
+    --input: 20 16% 24%;
+    --ring: 24 92% 60%;
+    --surface-strong: 18 24% 14%;
+    --surface-soft: 18 18% 18%;
+    --glow-rose: 345 76% 54%;
+    --glow-solar: 27 95% 62%;
+    --glow-jade: 152 46% 42%;
+    --star-color: 40 85% 88%;
+    --grid-color: 30 16% 24%;
+    --shadow-color: 0 0% 0%;
+    --signal-solar: 27 95% 62%;
+    --signal-jade: 152 57% 58%;
+    --signal-rose: 345 79% 66%;
+    --signal-gold: 43 98% 64%;
+    --signal-ink: 196 74% 73%;
+    color-scheme: dark;
   }
 }
 
 @layer base {
+  html {
+    min-height: 100%;
+  }
+
   * {
     @apply border-border;
   }
+
+  *::selection {
+    background: hsl(var(--primary) / 0.26);
+    color: hsl(var(--foreground));
+  }
+
   body {
     @apply bg-background text-foreground;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 14% 18%, hsl(var(--glow-rose) / 0.24) 0%, transparent 32%),
+      radial-gradient(circle at 82% 14%, hsl(var(--glow-solar) / 0.22) 0%, transparent 30%),
+      radial-gradient(circle at 52% 100%, hsl(var(--glow-jade) / 0.18) 0%, transparent 38%),
+      linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background)) 58%, hsl(var(--background-alt)) 100%);
+    background-attachment: fixed;
+    font-feature-settings: 'ss01' 1, 'cv03' 1, 'cv11' 1;
+  }
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle at 18% 24%, hsl(var(--star-color) / 0.18) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 76% 16%, hsl(var(--star-color) / 0.16) 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 55% 62%, hsl(var(--star-color) / 0.12) 0 1.2px, transparent 2px),
+    radial-gradient(circle, hsl(var(--grid-color) / 0.08) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 34px 34px;
+  opacity: 0.95;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(180deg, hsl(var(--foreground) / 0.015), transparent 14%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 5px,
+      hsl(var(--foreground) / 0.015) 5px,
+      hsl(var(--foreground) / 0.015) 6px
+    );
+  mix-blend-mode: soft-light;
+}
+
+body > div {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes cyber-blink {
+  0%,
+  85%,
+  100% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 0.22;
+  }
+}
+
+@keyframes pulse-glow-anim {
+  0%, 100% {
+    box-shadow:
+      0 0 0 1px hsl(var(--primary) / 0.08),
+      0 12px 34px hsl(var(--primary) / 0.12),
+      inset 0 1px 0 hsl(0 0% 100% / 0.08);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px hsl(var(--primary) / 0.18),
+      0 18px 52px hsl(var(--primary) / 0.22),
+      0 0 42px hsl(var(--glow-solar) / 0.18),
+      inset 0 1px 0 hsl(0 0% 100% / 0.12);
+  }
+}
+
+@layer components {
+  .surface-panel {
+    background:
+      linear-gradient(180deg, hsl(var(--surface-strong) / 0.92), hsl(var(--card) / 0.9)),
+      hsl(var(--card) / 0.9);
+    border: 1px solid hsl(var(--border) / 0.8);
+    box-shadow:
+      0 20px 60px hsl(var(--shadow-color) / 0.12),
+      inset 0 1px 0 hsl(0 0% 100% / 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .glass-panel {
+    background: linear-gradient(180deg, hsl(var(--card) / 0.7), hsl(var(--surface-soft) / 0.64));
+    border: 1px solid hsl(var(--border) / 0.7);
+    box-shadow:
+      0 18px 54px hsl(var(--shadow-color) / 0.14),
+      inset 0 1px 0 hsl(0 0% 100% / 0.08);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+  }
+
+  .glow-primary {
+    animation: pulse-glow-anim 2.5s ease-in-out infinite;
+  }
+
+  .glow-card-hover {
+    transition:
+      box-shadow 0.25s ease,
+      border-color 0.25s ease,
+      transform 0.25s ease,
+      background-color 0.25s ease;
+  }
+
+  .glow-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 22px 60px hsl(var(--shadow-color) / 0.16),
+      0 0 34px hsl(var(--primary) / 0.14);
+    border-color: hsl(var(--primary) / 0.22);
+  }
+
+  .text-gradient-cyber {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--signal-solar)) 0%,
+      hsl(var(--signal-rose)) 46%,
+      hsl(var(--signal-jade)) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .cyber-dot {
+    animation: cyber-blink 4s ease-in-out infinite;
+  }
+
+  .corner-bracket {
+    position: relative;
+  }
+
+  .corner-bracket::before,
+  .corner-bracket::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: hsl(var(--primary) / 0.42);
+    border-style: solid;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .corner-bracket::before {
+    top: 11px;
+    left: 11px;
+    border-width: 1.5px 0 0 1.5px;
+    border-radius: 6px 0 0 0;
+  }
+
+  .corner-bracket::after {
+    right: 11px;
+    bottom: 11px;
+    border-width: 0 1.5px 1.5px 0;
+    border-radius: 0 0 6px 0;
   }
 }

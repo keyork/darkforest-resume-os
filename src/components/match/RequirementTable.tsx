@@ -14,9 +14,9 @@ const PRIORITY_LABEL: Record<RequirementMatch['priority'], string> = {
 };
 
 const PRIORITY_STYLE: Record<RequirementMatch['priority'], string> = {
-  critical: 'bg-red-100 text-red-700 border-red-200',
-  important: 'bg-blue-100 text-blue-700 border-blue-200',
-  nice_to_have: 'bg-gray-100 text-gray-600 border-gray-200',
+  critical: 'border-[hsl(var(--signal-rose)/0.35)] bg-[hsl(var(--signal-rose)/0.12)] text-[hsl(var(--signal-rose))]',
+  important: 'border-[hsl(var(--signal-solar)/0.35)] bg-[hsl(var(--signal-solar)/0.12)] text-[hsl(var(--signal-solar))]',
+  nice_to_have: 'border-[hsl(var(--signal-jade)/0.35)] bg-[hsl(var(--signal-jade)/0.12)] text-[hsl(var(--signal-jade))]',
 };
 
 const STATUS_LABEL: Record<RequirementMatch['status'], string> = {
@@ -27,17 +27,17 @@ const STATUS_LABEL: Record<RequirementMatch['status'], string> = {
 };
 
 const STATUS_STYLE: Record<RequirementMatch['status'], string> = {
-  strong_match: 'text-green-600',
-  partial_match: 'text-yellow-600',
-  weak_match: 'text-orange-500',
-  no_match: 'text-red-500',
+  strong_match: 'text-[hsl(var(--signal-jade))]',
+  partial_match: 'text-[hsl(var(--signal-gold))]',
+  weak_match: 'text-[hsl(var(--signal-solar))]',
+  no_match: 'text-[hsl(var(--signal-rose))]',
 };
 
 const STATUS_DOT: Record<RequirementMatch['status'], string> = {
-  strong_match: 'bg-green-500',
-  partial_match: 'bg-yellow-500',
-  weak_match: 'bg-orange-400',
-  no_match: 'bg-red-400',
+  strong_match: 'bg-[hsl(var(--signal-jade))]',
+  partial_match: 'bg-[hsl(var(--signal-gold))]',
+  weak_match: 'bg-[hsl(var(--signal-solar))]',
+  no_match: 'bg-[hsl(var(--signal-rose))]',
 };
 
 export function RequirementTable({ matches }: RequirementTableProps) {
@@ -46,7 +46,7 @@ export function RequirementTable({ matches }: RequirementTableProps) {
   return (
     <div className="space-y-2">
       {matches.map((m, i) => (
-        <div key={i} className="border rounded-lg p-3 space-y-1.5">
+        <div key={i} className="rounded-[22px] border border-border/70 bg-background/30 p-3 space-y-1.5">
           <div className="flex items-start gap-2">
             <span
               className={cn(

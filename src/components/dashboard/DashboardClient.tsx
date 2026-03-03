@@ -1,14 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ImportModal } from '@/components/profile/ImportModal';
 import { useItems } from '@/lib/hooks/useItems';
+import { useMatchResults } from '@/lib/hooks/useMatch';
 import { useProfile } from '@/lib/hooks/useProfile';
 import {
   Upload,
@@ -20,11 +21,14 @@ import {
   GraduationCap,
   Award,
   TreePine,
+  ArrowRight,
+  Orbit,
+  Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 
 export function DashboardClient() {
   const [importOpen, setImportOpen] = useState(false);
-  const router = useRouter();
 
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: skills } = useItems('skill');
@@ -32,6 +36,7 @@ export function DashboardClient() {
   const { data: projects } = useItems('project');
   const { data: educations } = useItems('education');
   const { data: certifications } = useItems('certification');
+  const { data: matchResults = [], isLoading: matchResultsLoading } = useMatchResults();
 
   const totalItems =
     (skills?.length ?? 0) +
@@ -41,6 +46,7 @@ export function DashboardClient() {
     (certifications?.length ?? 0);
 
   const hasData = totalItems > 0;
+  const recentMatchResults = matchResults.slice(0, 5);
 
   const statsCards = [
     {
@@ -48,85 +54,146 @@ export function DashboardClient() {
       value: skills?.length ?? 0,
       icon: Brain,
       href: '/profile?tab=skill',
-      color: 'text-blue-500',
+      color: 'text-[hsl(var(--signal-solar))]',
+      glow: 'bg-[radial-gradient(circle,hsl(var(--signal-solar)/0.22)_0%,transparent_72%)]',
     },
     {
       label: '工作经历',
       value: experiences?.length ?? 0,
       icon: Briefcase,
       href: '/profile?tab=experience',
-      color: 'text-purple-500',
+      color: 'text-[hsl(var(--signal-rose))]',
+      glow: 'bg-[radial-gradient(circle,hsl(var(--signal-rose)/0.22)_0%,transparent_72%)]',
     },
     {
       label: '项目',
       value: projects?.length ?? 0,
       icon: FolderOpen,
       href: '/profile?tab=project',
-      color: 'text-green-500',
+      color: 'text-[hsl(var(--signal-jade))]',
+      glow: 'bg-[radial-gradient(circle,hsl(var(--signal-jade)/0.22)_0%,transparent_72%)]',
     },
     {
       label: '教育',
       value: educations?.length ?? 0,
       icon: GraduationCap,
       href: '/profile?tab=education',
-      color: 'text-orange-500',
+      color: 'text-[hsl(var(--signal-gold))]',
+      glow: 'bg-[radial-gradient(circle,hsl(var(--signal-gold)/0.22)_0%,transparent_72%)]',
     },
     {
       label: '证书',
       value: certifications?.length ?? 0,
       icon: Award,
       href: '/profile?tab=certification',
-      color: 'text-yellow-500',
+      color: 'text-[hsl(var(--signal-ink))]',
+      glow: 'bg-[radial-gradient(circle,hsl(var(--signal-ink)/0.22)_0%,transparent_72%)]',
     },
   ];
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-8">
-      {/* Hero */}
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <TreePine className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">
-              {profileLoading ? (
-                <Skeleton className="h-7 w-48 inline-block" />
-              ) : profile?.name ? (
-                `你好，${profile.name}`
-              ) : (
-                '欢迎使用 darkforest'
-              )}
-            </h1>
+    <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-6 sm:px-6 lg:px-10">
+      <section className="surface-panel relative overflow-hidden rounded-[34px] px-6 py-7 sm:px-8 sm:py-8">
+        <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,hsl(var(--glow-solar)/0.24),transparent_68%)]" />
+        <div className="absolute -right-16 top-8 h-48 w-48 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-rose)/0.18)_0%,transparent_70%)] blur-2xl" />
+        <div className="absolute bottom-0 left-1/3 h-40 w-40 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-jade)/0.16)_0%,transparent_70%)] blur-2xl" />
+
+        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl space-y-5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1 text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+              <Orbit className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
+              Career Observatory
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <TreePine className="h-7 w-7 text-primary" />
+                <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
+                  {profileLoading ? (
+                    <Skeleton className="h-10 w-56" />
+                  ) : (
+                    <span className="text-gradient-cyber">
+                      {profile?.name ? `你好，${profile.name}` : 'Build a resume galaxy'}
+                    </span>
+                  )}
+                </h1>
+              </div>
+              <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+                {hasData
+                  ? `你的能力图谱已上线${profile?.title ? `，当前轨道聚焦 ${profile.title}` : ''}。现在可以把经历、技能和目标岗位组织成一份更锋利的叙事。`
+                  : '把履历拆成可计算的模块，再用 AI 让它针对不同岗位重新编排。先上传旧简历，或者直接手动搭建你的职业宇宙。'}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              <Button size="lg" onClick={() => setImportOpen(true)} className="gap-2.5">
+                <Upload className="h-4 w-4" />
+                上传我的简历
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/match" className="gap-2.5">
+                  <Target className="h-4 w-4" />
+                  开始匹配 JD
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+              <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1">
+                Structured Items
+              </span>
+              <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1">
+                JD Scoring
+              </span>
+              <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1">
+                Multi-version Resume Generation
+              </span>
+            </div>
           </div>
-          <p className="text-muted-foreground text-sm">
-            {hasData
-              ? '你的能力图谱已就绪，随时可以进行 JD 匹配分析'
-              : '从上传简历开始，或手动创建你的能力图谱'}
-          </p>
+
+          <div className="grid w-full gap-3 sm:grid-cols-3 lg:max-w-md lg:grid-cols-1">
+            <div className="rounded-[26px] border border-border/70 bg-background/40 p-4">
+              <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
+                Atlas State
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <span className="cyber-dot inline-block h-2.5 w-2.5 rounded-full bg-[hsl(var(--signal-jade))]" />
+                <span className="text-lg font-semibold">
+                  {hasData ? 'Ready for targeting' : 'Awaiting first import'}
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-[26px] border border-border/70 bg-background/40 p-4">
+              <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
+                Total Items
+              </div>
+              <div className="mt-3 text-4xl font-semibold tabular-nums">{totalItems}</div>
+            </div>
+
+            <div className="rounded-[26px] border border-border/70 bg-background/40 p-4">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
+                <ShieldCheck className="h-3.5 w-3.5 text-[hsl(var(--signal-gold))]" />
+                Narrative Readiness
+              </div>
+              <div className="mt-3 text-sm leading-6 text-muted-foreground">
+                {hasData
+                  ? '已有可用于匹配与生成的基础档案。'
+                  : '导入一次旧简历，就能快速生成第一版结构化档案。'}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Main actions */}
-      <div className="flex gap-3">
-        <Button size="lg" onClick={() => setImportOpen(true)} className="gap-2">
-          <Upload className="h-5 w-5" />
-          上传我的简历
-        </Button>
-        <Button size="lg" variant="outline" asChild>
-          <Link href="/match" className="gap-2">
-            <Target className="h-5 w-5" />
-            开始匹配 JD
-          </Link>
-        </Button>
-      </div>
-
-      {/* Stats */}
       {!hasData ? (
         <EmptyState
           icon={Zap}
           title="还没有档案数据"
           description="上传你的简历，AI 会自动解析并构建结构化档案。也可以手动添加每一条记录。"
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap justify-center gap-2">
               <Button onClick={() => setImportOpen(true)}>
                 <Upload className="h-4 w-4 mr-2" />
                 上传简历
@@ -139,21 +206,37 @@ export function DashboardClient() {
         />
       ) : (
         <>
-          <div>
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-              能力概览
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <section className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
+                  Capability Atlas
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight">能力概览</h2>
+              </div>
+              <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-background/40 px-3 py-1.5 text-xs text-muted-foreground sm:flex">
+                <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-rose))]" />
+                Live item counts
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
               {statsCards.map((card) => {
                 const Icon = card.icon;
                 return (
                   <Link key={card.label} href={card.href}>
-                    <Card className="hover:border-primary/50 transition-colors cursor-pointer">
-                      <CardContent className="p-4 space-y-2">
-                        <Icon className={`h-5 w-5 ${card.color}`} />
-                        <div>
-                          <div className="text-2xl font-bold">{card.value}</div>
-                          <div className="text-xs text-muted-foreground">{card.label}</div>
+                    <Card className="glow-card-hover corner-bracket relative h-full cursor-pointer overflow-hidden">
+                      <div className={`pointer-events-none absolute -right-8 top-0 h-24 w-24 rounded-full blur-2xl ${card.glow}`} />
+                      <CardContent className="relative space-y-6 p-5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
+                            {card.label}
+                          </span>
+                          <Icon className={`h-5 w-5 ${card.color}`} />
+                        </div>
+                        <div className="space-y-1">
+                          <div className="text-3xl font-semibold tabular-nums">{card.value}</div>
+                          <div className="text-xs text-muted-foreground">Tap to inspect</div>
                         </div>
                       </CardContent>
                     </Card>
@@ -161,57 +244,124 @@ export function DashboardClient() {
                 );
               })}
             </div>
-          </div>
+          </section>
 
-          {/* Quick links */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Card className="hover:border-primary/50 transition-colors">
+          <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <Card className="glow-card-hover corner-bracket overflow-hidden">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base">
                   <Target className="h-4 w-4 text-primary" />
                   JD 匹配分析
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-3">
-                  粘贴职位描述，AI 分析你与岗位的匹配度
+              <CardContent className="space-y-4">
+                <p className="text-sm leading-7 text-muted-foreground">
+                  粘贴职位描述，让系统从技术、经验、文化和成长潜力多个维度重算你的竞争力。
                 </p>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/match">开始分析</Link>
+                  <Link href="/match" className="gap-2">
+                    开始分析
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="hover:border-primary/50 transition-colors">
+            <Card className="glow-card-hover corner-bracket overflow-hidden">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-yellow-500" />
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Zap className="h-4 w-4 text-[hsl(var(--signal-gold))]" />
                   生成简历
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-3">
-                  选择叙事策略，AI 生成针对性的 Markdown 简历
+              <CardContent className="space-y-4">
+                <p className="text-sm leading-7 text-muted-foreground">
+                  选择叙事策略、语言和长度，生成一份更贴合目标岗位的 Markdown 简历。
                 </p>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/generate">生成简历</Link>
+                  <Link href="/generate" className="gap-2">
+                    进入生成器
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
-          </div>
+          </section>
         </>
       )}
 
-      {/* Match history placeholder */}
-      <div>
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-          最近匹配记录
-        </h2>
-        <EmptyState
-          title="暂无匹配记录"
-          description="前往 JD 匹配页面开始你的第一次分析"
-        />
-      </div>
+      <section className="space-y-4">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
+              Match Archive
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight">最近匹配记录</h2>
+          </div>
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/match" className="gap-2">
+              查看全部
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+
+        {matchResultsLoading ? (
+          <div className="grid gap-3 xl:grid-cols-2">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Card key={index} className="overflow-hidden">
+                <CardContent className="space-y-3 p-5">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-7 w-20" />
+                  <Skeleton className="h-14 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : recentMatchResults.length === 0 ? (
+          <EmptyState
+            title="暂无匹配记录"
+            description="前往 JD 匹配页面开始你的第一次分析"
+          />
+        ) : (
+          <div className="grid gap-3 xl:grid-cols-2">
+            {recentMatchResults.map((result) => (
+              <Link key={result.id} href="/match">
+                <Card className="glow-card-hover corner-bracket h-full overflow-hidden">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-2">
+                        <div className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
+                          Match Result
+                        </div>
+                        <CardTitle className="text-base">
+                          {result.position || '未命名岗位'}
+                          {result.company ? ` · ${result.company}` : ''}
+                        </CardTitle>
+                      </div>
+                      <div className="rounded-full border border-border/70 bg-background/50 px-3 py-1 text-sm font-semibold tabular-nums text-primary">
+                        {Math.round(result.overallScore)}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+                      {result.summary || '该条分析暂无摘要，可前往匹配页查看完整结果。'}
+                    </p>
+                    <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                      <span>{format(new Date(result.createdAt), 'yyyy-MM-dd HH:mm')}</span>
+                      <span className="inline-flex items-center gap-1">
+                        查看分析
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
 
       <ImportModal open={importOpen} onOpenChange={setImportOpen} />
     </div>

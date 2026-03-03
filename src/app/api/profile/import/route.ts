@@ -1,10 +1,12 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { parseProfileFromText } from '@/lib/ai/agents/profile-agent';
+import { getAIClientConfigFromHeaders, isMissingAIClientConfigError } from '@/lib/ai/config';
 import { parseFileToText, getFileMimeType } from '@/lib/utils/file-parser';
 
 export async function POST(request: NextRequest) {
   try {
+    const clientConfig = getAIClientConfigFromHeaders(request.headers);
     const contentType = request.headers.get('content-type') ?? '';
     let rawText = '';
 
@@ -33,14 +35,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Call Profile Agent
-    const parsed = await parseProfileFromText(rawText);
+    const parsed = await parseProfileFromText(rawText, clientConfig);
 
     return NextResponse.json({ rawText, parsed });
   } catch (error) {
     console.error('[POST /api/profile/import]', error);
     return NextResponse.json(
       { error: 'Failed to parse resume', details: String(error) },
-      { status: 500 }
+      { status: isMissingAIClientConfigError(error) ? 400 : 500 }
     );
   }
 }

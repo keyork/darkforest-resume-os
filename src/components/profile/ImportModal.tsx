@@ -4,6 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+  isAgentTaskTerminatedError,
+  useAgentTasks,
+} from '@/components/agent/AgentTaskProvider';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -16,9 +20,9 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
 import { LoadingAgent } from '@/components/shared/LoadingAgent';
 import { FileUpload } from '@/components/shared/FileUpload';
+import { fetchWithAISettings } from '@/lib/client/fetch-json';
 import { itemKeys } from '@/lib/hooks/useItems';
 import { profileKeys } from '@/lib/hooks/useProfile';
 import {
@@ -122,6 +126,7 @@ function getItemSummary(type: ItemType, data: ItemData): string {
 export function ImportModal({ open, onOpenChange }: ImportModalProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { runTask } = useAgentTasks();
 
   const [step, setStep] = useState<Step>('upload');
   const [inputTab, setInputTab] = useState<'file' | 'text'>('file');
@@ -163,11 +168,21 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
         headers = { 'Content-Type': 'application/json' };
       }
 
-      const res = await fetch('/api/profile/import', {
-        method: 'POST',
-        headers,
-        body: body as BodyInit,
-      });
+      const res = await runTask(
+        {
+          kind: 'profile_parse',
+          title: '简历导入解析',
+          description: content instanceof File ? content.name : content.slice(0, 80),
+          successMessage: '简历内容已完成结构化解析',
+        },
+        (signal) =>
+          fetchWithAISettings('/api/profile/import', {
+            method: 'POST',
+            headers,
+            body: body as BodyInit,
+            signal,
+          })
+      );
 
       if (!res.ok) {
         const err = await res.json();
@@ -180,6 +195,11 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
       setPreviewItems(buildPreviewItems(p));
       setStep('preview');
     } catch (err) {
+      if (isAgentTaskTerminatedError(err)) {
+        toast.error('解析任务已终止');
+        setStep('upload');
+        return;
+      }
       toast.error(`解析失败: ${String(err)}`);
       setStep('upload');
     }
@@ -190,7 +210,7 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/profile/import/confirm', {
+      const res = await fetchWithAISettings('/api/profile/import/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -398,7 +418,7 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
                             </span>
                           </div>
                           {item.isDuplicate && (
-                            <span className="text-xs text-yellow-600 flex items-center gap-1 mt-0.5">
+                            <span className="mt-0.5 flex items-center gap-1 text-xs text-[hsl(var(--signal-gold))]">
                               <AlertTriangle className="h-3 w-3" />
                               疑似重复
                             </span>

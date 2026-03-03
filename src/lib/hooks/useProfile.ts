@@ -2,6 +2,8 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Profile } from '@/lib/types/profile';
+import { itemKeys } from '@/lib/hooks/useItems';
+import { fetchJson, fetchWithAISettings } from '@/lib/client/fetch-json';
 
 // ---------------------------------------------------------------------------
 // Query key factory
@@ -15,18 +17,6 @@ export const profileKeys = {
 // ---------------------------------------------------------------------------
 // API helper
 // ---------------------------------------------------------------------------
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => res.statusText);
-    throw new Error(`API ${init?.method ?? 'GET'} ${url} failed (${res.status}): ${body}`);
-  }
-  return res.json() as Promise<T>;
-}
 
 // ---------------------------------------------------------------------------
 // useProfile – GET /api/profile
@@ -87,6 +77,27 @@ export function useUpdateProfile() {
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: detailKey });
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// useResetProfile – DELETE /api/profile (wipes all items + clears profile)
+// ---------------------------------------------------------------------------
+
+export function useResetProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const res = await fetchWithAISettings('/api/profile', { method: 'DELETE' });
+      if (!res.ok) {
+        const body = await res.text().catch(() => res.statusText);
+        throw new Error(`Reset failed (${res.status}): ${body}`);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: profileKeys.all });
+      queryClient.invalidateQueries({ queryKey: itemKeys.all });
     },
   });
 }
