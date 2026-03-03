@@ -3,11 +3,12 @@
 export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
+import { isAgentTaskTerminatedError } from '@/components/agent/AgentTaskProvider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Trash2, ChevronRight } from 'lucide-react';
+import { Loader2, Trash2, ChevronRight, Orbit, Sparkles } from 'lucide-react';
 import { JDInput } from '@/components/match/JDInput';
 import { JDDetail } from '@/components/match/JDDetail';
 import { MatchScoreCard } from '@/components/match/MatchScoreCard';
@@ -19,7 +20,6 @@ import { useRunMatch, useMatchResults, useDeleteMatch, useMatchResult } from '@/
 import type { JobDescription } from '@/lib/types/jd';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-
 export default function MatchPage() {
   const [selectedJd, setSelectedJd] = useState<JobDescription | null>(null);
   const [activeResultId, setActiveResultId] = useState<string | null>(null);
@@ -33,9 +33,15 @@ export default function MatchPage() {
 
   async function handleRunMatch() {
     if (!selectedJd) return;
-    const result = await runMatch.mutateAsync(selectedJd.id);
-    setActiveResultId(result.id);
-    setRightTab('result');
+    try {
+      const result = await runMatch.mutateAsync(selectedJd.id);
+      setActiveResultId(result.id);
+      setRightTab('result');
+    } catch (error) {
+      if (isAgentTaskTerminatedError(error)) {
+        return;
+      }
+    }
   }
 
   function handleSelectJd(jd: JobDescription) {
@@ -44,15 +50,30 @@ export default function MatchPage() {
   }
 
   return (
-    <div className="h-full flex flex-col gap-4 p-6 max-w-7xl mx-auto w-full">
-      <div>
-        <h1 className="text-2xl font-bold"><span className="text-gradient-cyber">JD 匹配分析</span></h1>
-        <p className="text-sm text-muted-foreground mt-0.5">
-          选择或解析一份职位描述，AI 将分析你的简历与该职位的匹配度
-        </p>
-      </div>
+    <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
+      <section className="surface-panel relative overflow-hidden rounded-[32px] px-6 py-7 sm:px-8">
+        <div className="absolute -right-8 top-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-rose)/0.18)_0%,transparent_72%)] blur-2xl" />
+        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1 text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+              <Orbit className="h-3.5 w-3.5 text-[hsl(var(--signal-rose))]" />
+              Target Lock
+            </div>
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+              <span className="text-gradient-cyber">JD 匹配分析</span>
+            </h1>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+              选择或解析一份职位描述，AI 会把你的档案映射到岗位要求、差距项和简历策略。
+            </p>
+          </div>
+          <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-background/40 px-3 py-1.5 text-xs text-muted-foreground sm:flex">
+            <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
+            Semantic scoring across five dimensions
+          </div>
+        </div>
+      </section>
 
-      <div className="flex-1 grid grid-cols-[300px_1fr] gap-4 min-h-0">
+      <div className="grid flex-1 gap-4 min-h-0 xl:grid-cols-[300px_minmax(0,1fr)]">
         {/* Left panel */}
         <div className="flex flex-col gap-3 min-h-0 overflow-hidden">
           <Card className="flex-shrink-0">
@@ -189,7 +210,7 @@ export default function MatchPage() {
                   <div className="space-y-4">
                     <MatchScoreCard scores={activeResult.scores} summary={activeResult.summary} />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-4 lg:grid-cols-2">
                       <Card>
                         <CardHeader className="pb-2">
                           <CardTitle className="text-base">能力雷达图</CardTitle>

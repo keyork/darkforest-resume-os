@@ -98,7 +98,7 @@ export function JDDetail({ jd }: JDDetailProps) {
             <ul className="space-y-1">
               {p.niceToHave.map((item, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-cyan-400 flex-shrink-0" />
+                  <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[hsl(var(--signal-jade))]" />
                   {item}
                 </li>
               ))}

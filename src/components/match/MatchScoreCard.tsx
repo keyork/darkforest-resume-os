@@ -11,30 +11,30 @@ interface MatchScoreCardProps {
 }
 
 function scoreColor(score: number) {
-  if (score >= 80) return 'text-emerald-400';
-  if (score >= 60) return 'text-amber-400';
-  return 'text-rose-400';
+  if (score >= 80) return 'text-[hsl(var(--signal-jade))]';
+  if (score >= 60) return 'text-[hsl(var(--signal-gold))]';
+  return 'text-[hsl(var(--signal-rose))]';
 }
 
 function scoreBg(score: number) {
-  if (score >= 80) return 'bg-emerald-900/20 border-emerald-700/30';
-  if (score >= 60) return 'bg-amber-900/20 border-amber-700/30';
-  return 'bg-rose-900/20 border-rose-700/30';
+  if (score >= 80) return 'bg-[hsl(var(--signal-jade)/0.10)] border-[hsl(var(--signal-jade)/0.25)]';
+  if (score >= 60) return 'bg-[hsl(var(--signal-gold)/0.10)] border-[hsl(var(--signal-gold)/0.25)]';
+  return 'bg-[hsl(var(--signal-rose)/0.10)] border-[hsl(var(--signal-rose)/0.25)]';
 }
 
 function scoreGlowStyle(score: number): CSSProperties {
-  if (score >= 80) return { textShadow: '0 0 20px hsl(160 84% 55% / 0.85), 0 0 45px hsl(160 84% 55% / 0.35)' };
-  if (score >= 60) return { textShadow: '0 0 20px hsl(43 96% 56% / 0.85), 0 0 45px hsl(43 96% 56% / 0.35)' };
-  return { textShadow: '0 0 20px hsl(351 95% 71% / 0.85), 0 0 45px hsl(351 95% 71% / 0.35)' };
+  if (score >= 80) return { textShadow: '0 0 18px hsl(var(--signal-jade) / 0.72), 0 0 42px hsl(var(--signal-jade) / 0.26)' };
+  if (score >= 60) return { textShadow: '0 0 18px hsl(var(--signal-gold) / 0.72), 0 0 42px hsl(var(--signal-gold) / 0.26)' };
+  return { textShadow: '0 0 18px hsl(var(--signal-rose) / 0.72), 0 0 42px hsl(var(--signal-rose) / 0.26)' };
 }
 
 function shimmerBarStyle(score: number): CSSProperties {
   const stops =
     score >= 80
-      ? '#34d399 0%, #67e8f9 50%, #34d399 100%'
+      ? 'hsl(var(--signal-jade)) 0%, hsl(var(--signal-ink)) 50%, hsl(var(--signal-jade)) 100%'
       : score >= 60
-      ? '#fbbf24 0%, #fde68a 50%, #fbbf24 100%'
-      : '#fb7185 0%, #fda4af 50%, #fb7185 100%';
+      ? 'hsl(var(--signal-gold)) 0%, hsl(var(--signal-solar)) 50%, hsl(var(--signal-gold)) 100%'
+      : 'hsl(var(--signal-rose)) 0%, hsl(var(--signal-solar)) 50%, hsl(var(--signal-rose)) 100%';
   return {
     width: `${score}%`,
     background: `linear-gradient(90deg, ${stops})`,
@@ -63,7 +63,7 @@ export function MatchScoreCard({ scores, summary }: MatchScoreCardProps) {
   return (
     <div className="space-y-4">
       {/* Overall score hero */}
-      <Card className={cn('border-2 corner-bracket', scoreBg(scores.overall))}>
+      <Card className={cn('corner-bracket border-2', scoreBg(scores.overall))}>
         <CardContent className="p-6 flex items-center gap-6">
           <div className="text-center flex-shrink-0">
             <div

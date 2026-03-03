@@ -1,7 +1,9 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAgentTasks } from '@/components/agent/AgentTaskProvider';
 import type { JobDescription } from '@/lib/types/jd';
+import { fetchJson } from '@/lib/client/fetch-json';
 import { toast } from 'sonner';
 
 export const jdKeys = {
@@ -9,18 +11,6 @@ export const jdKeys = {
   lists: () => [...jdKeys.all, 'list'] as const,
   detail: (id: string) => [...jdKeys.all, 'detail', id] as const,
 };
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => res.statusText);
-    throw new Error(`${init?.method ?? 'GET'} ${url} failed (${res.status}): ${body}`);
-  }
-  return res.json() as Promise<T>;
-}
 
 export function useJDs() {
   return useQuery({
@@ -45,14 +35,26 @@ export function useJD(id: string) {
 
 export function useParseJD() {
   const queryClient = useQueryClient();
+  const { runTask } = useAgentTasks();
+
   return useMutation({
-    mutationFn: async (text: string) => {
-      const { jd } = await fetchJson<{ jd: JobDescription }>('/api/jd', {
-        method: 'POST',
-        body: JSON.stringify({ text }),
-      });
-      return jd;
-    },
+    mutationFn: async (text: string) =>
+      runTask(
+        {
+          kind: 'jd_parse',
+          title: 'JD 解析',
+          description: text.slice(0, 80),
+          successMessage: '职位描述已解析并加入历史列表',
+        },
+        async (signal) => {
+          const { jd } = await fetchJson<{ jd: JobDescription }>('/api/jd', {
+            method: 'POST',
+            body: JSON.stringify({ text }),
+            signal,
+          });
+          return jd;
+        }
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: jdKeys.lists() });
     },

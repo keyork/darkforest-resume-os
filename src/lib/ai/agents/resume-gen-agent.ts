@@ -1,5 +1,6 @@
 import { callAgentText } from '../client';
 import { RESUME_GEN_SYSTEM_PROMPT } from '../prompts';
+import type { AIClientConfig } from '../config';
 import type { GenerationStrategy } from '@/lib/types/resume';
 import type { Item } from '@/lib/types/item';
 import type { ParsedJD } from '@/lib/types/jd';
@@ -121,7 +122,10 @@ function serializeItems(items: Item[]): string {
   return sections.join('\n');
 }
 
-export async function generateResumeMarkdown(input: ResumeGenInput): Promise<string> {
+export async function generateResumeMarkdown(
+  input: ResumeGenInput,
+  clientConfig: AIClientConfig,
+): Promise<string> {
   const {
     profileName,
     profileTitle,
@@ -184,6 +188,7 @@ export async function generateResumeMarkdown(input: ResumeGenInput): Promise<str
   const markdown = await callAgentText({
     systemPrompt: RESUME_GEN_SYSTEM_PROMPT,
     userMessage,
+    clientConfig,
     maxTokens: 8192,
   });
 

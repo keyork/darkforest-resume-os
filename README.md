@@ -17,7 +17,7 @@
 | UI | Tailwind CSS · shadcn/ui (New York, zinc) · Recharts |
 | 状态 | TanStack Query v5 · nuqs |
 | 数据库 | Drizzle ORM · better-sqlite3 (SQLite) |
-| AI | OpenAI SDK → Moonshot API (kimi-k2-5) |
+| AI | OpenAI SDK · OpenAI 兼容模型服务（默认模型示例：`kimi-k2.5`） |
 | 表单 | react-hook-form · zod |
 | 拖拽 | @dnd-kit/core · @dnd-kit/sortable |
 | 文件解析 | pdf-parse · mammoth |
@@ -30,19 +30,19 @@
 npm install
 ```
 
-### 2 配置环境变量
+### 2 配置环境变量（仅数据库）
 
 ```bash
 cp .env.example .env.local
 ```
 
-编辑 `.env.local`，填入你的 API Key：
+编辑 `.env.local`。这个项目现在只需要数据库路径环境变量，且有默认值：
 
 ```env
-OPENAI_API_KEY=your_api_key_here
-OPENAI_BASE_URL=https://api.moonshot.cn/v1
 DATABASE_URL=./db/resume-agent.db
 ```
+
+如果你不写 `DATABASE_URL`，系统也会默认使用 `./db/resume-agent.db`。
 
 ### 3 初始化数据库
 
@@ -57,6 +57,17 @@ npm run dev
 ```
 
 打开 [http://localhost:3000](http://localhost:3000)。
+
+### 5 在网页里填写 AI 设置
+
+启动后进入网站左下角的“AI 设置”页面，填写以下三项：
+
+- `API Key`
+- `Base URL`
+- `模型名`
+
+这些值只保存在当前浏览器的 localStorage 中，不会读取或写入 `.env` 文件。
+如果你切换浏览器、清空站点数据或使用无痕窗口，需要重新填写。
 
 ## 项目结构
 
@@ -101,5 +112,13 @@ npm run db:studio  # Drizzle Studio 可视化数据库
 
 ## AI 引擎说明
 
-默认使用 [Moonshot Kimi](https://platform.moonshot.cn) API（与 OpenAI SDK 兼容）。
-如需切换其他 OpenAI 兼容服务，修改 `.env.local` 中的 `OPENAI_BASE_URL` 和 `OPENAI_API_KEY` 即可。
+项目通过 OpenAI SDK 调用 OpenAI 兼容接口。
+默认前端模型名示例为 `kimi-k2.5`，你也可以在网站“AI 设置”页面改成其他可用模型。
+
+常见配置方式：
+
+- Moonshot / Kimi：在控制台创建 API Key，Base URL 常见为 `https://api.moonshot.cn/v1`
+- OpenAI：在 Platform 控制台创建 API Key，Base URL 常见为 `https://api.openai.com/v1`
+- 其他兼容服务：按服务商文档填写 API Key、Base URL 和模型名
+
+注意：AI 相关配置已经全部迁移到网页前端设置页，`.env.local` 不再存放 `API Key`、`Base URL` 或模型名。

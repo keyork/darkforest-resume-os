@@ -1,5 +1,6 @@
 import { callAgent } from '../client';
 import { MATCH_AGENT_SYSTEM_PROMPT } from '../prompts';
+import type { AIClientConfig } from '../config';
 import type { ParsedJD } from '@/lib/types/jd';
 import type { MatchResult } from '@/lib/types/match';
 
@@ -8,22 +9,36 @@ type MatchAnalysisResult = Omit<MatchResult, 'id' | 'profileId' | 'jdId' | 'crea
 export async function runMatchAnalysis(
   profileSummary: string,
   parsedJD: ParsedJD,
+  clientConfig: AIClientConfig,
 ): Promise<MatchAnalysisResult> {
-  const userMessage = [
-    '## Candidate Profile',
+  const baseUserMessage = [
+    '请基于以下候选人信息和岗位描述生成匹配分析。',
+    '注意：最终所有分析性文本必须使用简体中文。',
+    '',
+    '## 候选人档案',
     '',
     profileSummary,
     '',
-    '## Parsed Job Description',
+    '## 结构化岗位描述',
     '',
     JSON.stringify(parsedJD, null, 2),
   ].join('\n');
 
-  const result = await callAgent<MatchAnalysisResult>({
+  let result = await callAgent<MatchAnalysisResult>({
     systemPrompt: MATCH_AGENT_SYSTEM_PROMPT,
-    userMessage,
+    userMessage: baseUserMessage,
+    clientConfig,
     maxTokens: 8192,
   });
+
+  if (!isChineseMatchResult(result)) {
+    result = await callAgent<MatchAnalysisResult>({
+      systemPrompt: MATCH_AGENT_SYSTEM_PROMPT,
+      userMessage: `${baseUserMessage}\n\n上一次输出包含英文分析文本。请重新输出，并确保所有分析性文本全部为简体中文。`,
+      clientConfig,
+      maxTokens: 8192,
+    });
+  }
 
   return {
     scores: {
@@ -43,4 +58,25 @@ export async function runMatchAnalysis(
       deemphasize: result.resumeStrategy?.deemphasize ?? [],
     },
   };
+}
+
+function isChineseMatchResult(result: Partial<MatchAnalysisResult>): boolean {
+  const textFields = [
+    result.summary,
+    result.resumeStrategy?.narrative,
+    ...(result.requirementMatches ?? []).map((item) => item.evidence),
+    ...(result.gaps ?? []).flatMap((gap) => [
+      gap.currentState,
+      gap.targetState,
+      gap.suggestion,
+    ]),
+  ].filter((value): value is string => Boolean(value && value.trim()));
+
+  if (textFields.length === 0) return false;
+
+  return textFields.every(hasChineseCharacters);
+}
+
+function hasChineseCharacters(text: string): boolean {
+  return /[\u3400-\u9fff]/.test(text);
 }

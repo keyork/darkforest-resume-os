@@ -102,7 +102,7 @@ export function ProfileHeader() {
 
   if (isLoading) {
     return (
-      <div className="p-6 border rounded-lg space-y-3">
+      <div className="surface-panel space-y-3 rounded-[30px] p-6">
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-4 w-64" />
         <Skeleton className="h-16 w-full" />
@@ -116,7 +116,7 @@ export function ProfileHeader() {
     return (
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="p-6 border rounded-lg space-y-4 bg-card"
+        className="surface-panel space-y-4 rounded-[30px] p-6"
       >
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-sm text-muted-foreground">编辑基本信息</h2>
@@ -207,7 +207,7 @@ export function ProfileHeader() {
   return (
     <div
       className={cn(
-        'group p-6 border rounded-lg bg-card transition-colors cursor-pointer hover:border-primary/50',
+        'surface-panel group cursor-pointer rounded-[30px] p-6 transition-colors hover:border-primary/40',
         isEmpty && 'border-dashed'
       )}
       onClick={startEdit}

@@ -1,6 +1,8 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAgentTasks } from '@/components/agent/AgentTaskProvider';
+import { fetchJson } from '@/lib/client/fetch-json';
 import type { GeneratedResume, GenerationStrategy } from '@/lib/types/resume';
 
 export const generateKeys = {
@@ -8,18 +10,6 @@ export const generateKeys = {
   lists: () => [...generateKeys.all, 'list'] as const,
   detail: (id: string) => [...generateKeys.all, 'detail', id] as const,
 };
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => res.statusText);
-    throw new Error(`${init?.method ?? 'GET'} ${url} failed (${res.status}): ${body}`);
-  }
-  return res.json() as Promise<T>;
-}
 
 export function useGeneratedResumes() {
   return useQuery({
@@ -51,14 +41,26 @@ export interface GenerateInput extends GenerationStrategy {
 
 export function useGenerateResume() {
   const queryClient = useQueryClient();
+  const { runTask } = useAgentTasks();
+
   return useMutation({
-    mutationFn: async (input: GenerateInput) => {
-      const { resume } = await fetchJson<{ resume: GeneratedResume }>('/api/generate', {
-        method: 'POST',
-        body: JSON.stringify(input),
-      });
-      return resume;
-    },
+    mutationFn: async (input: GenerateInput) =>
+      runTask(
+        {
+          kind: 'resume_generate',
+          title: '简历生成',
+          description: `策略 ${input.narrative} · ${input.language} · ${input.length}`,
+          successMessage: '简历已生成并保存到历史记录',
+        },
+        async (signal) => {
+          const { resume } = await fetchJson<{ resume: GeneratedResume }>('/api/generate', {
+            method: 'POST',
+            body: JSON.stringify(input),
+            signal,
+          });
+          return resume;
+        }
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: generateKeys.lists() });
     },

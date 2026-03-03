@@ -1,14 +1,26 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/layout/ThemeToggle';
+import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import {
   LayoutDashboard,
   User,
   Target,
   FileText,
   TreePine,
+  PanelLeft,
+  Sparkles,
+  Settings2,
 } from 'lucide-react';
 
 const navItems = [
@@ -18,63 +30,170 @@ const navItems = [
   { href: '/generate', label: '生成简历', icon: FileText },
 ];
 
-export function Sidebar() {
-  const pathname = usePathname();
-
+function SidebarContent({
+  pathname,
+  onNavigate,
+  mobile = false,
+}: {
+  pathname: string;
+  onNavigate?: () => void;
+  mobile?: boolean;
+}) {
   return (
-    <aside className="w-56 border-r border-border/50 glass-panel relative flex flex-col flex-shrink-0">
-      {/* Cyan gradient line on right edge */}
-      <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-primary/40 to-transparent pointer-events-none" />
+    <div
+      className={cn(
+        'relative flex h-full flex-col overflow-hidden rounded-[30px] border border-border/70 bg-card/80 p-4 shadow-[0_24px_80px_hsl(var(--shadow-color)/0.22)] backdrop-blur-2xl',
+        mobile && 'rounded-none border-0 bg-transparent p-0 shadow-none backdrop-blur-none'
+      )}
+    >
+      <div className="pointer-events-none absolute inset-x-8 top-0 h-28 rounded-full bg-[radial-gradient(circle,hsl(var(--primary)/0.28)_0%,transparent_72%)] blur-2xl" />
 
-      {/* Logo */}
-      <div className="h-14 flex items-center gap-2 px-4 border-b border-border/50">
-        <TreePine className="h-5 w-5 text-primary drop-shadow-[0_0_6px_hsl(195_100%_50%/0.8)]" />
-        <span className="font-bold text-sm tracking-tight text-gradient-cyber">darkforest</span>
-        <span
-          title="online"
-          className="ml-auto w-2 h-2 rounded-full bg-emerald-400 cyber-dot shadow-[0_0_6px_hsl(145_80%_60%/1)] flex-shrink-0"
-        />
+      <div className="relative flex items-start gap-3 border-b border-border/60 pb-5">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
+          <TreePine className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[10px] uppercase tracking-[0.42em] text-muted-foreground">
+            Darkforest
+          </p>
+          <h2 className="mt-1 text-lg font-semibold leading-none tracking-tight">
+            <span className="text-gradient-cyber">resume os</span>
+          </h2>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            Adaptive dossier system for matching, refining, and generating resumes.
+          </p>
+        </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 p-2 space-y-1">
+      <div className="relative mt-5 rounded-2xl border border-border/60 bg-background/40 p-3">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.28em] text-muted-foreground">
+          <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
+          Mode Orbit
+        </div>
+        <div className="mt-3">
+          <ThemeToggle className="w-full justify-between" />
+        </div>
+      </div>
+
+      <nav className="relative mt-5 flex-1 space-y-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
-            item.href === '/'
-              ? pathname === '/'
-              : pathname.startsWith(item.href);
+            item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
+
           return (
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all border',
+                'group relative flex items-center gap-3 overflow-hidden rounded-2xl border px-3.5 py-3 text-sm transition-all',
                 isActive
-                  ? 'bg-primary/10 text-primary border-primary/20 border-l-2 border-l-primary glow-primary'
-                  : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-accent/50'
+                  ? 'border-primary/30 bg-primary/10 text-foreground shadow-[0_16px_40px_hsl(var(--primary)/0.15)]'
+                  : 'border-transparent text-muted-foreground hover:border-border/70 hover:bg-background/40 hover:text-foreground'
               )}
             >
-              <Icon
+              <span
                 className={cn(
-                  'h-4 w-4 flex-shrink-0',
-                  isActive && 'drop-shadow-[0_0_4px_hsl(195_100%_50%/0.9)]'
+                  'absolute inset-y-3 left-0 w-1 rounded-r-full bg-transparent transition-colors',
+                  isActive && 'bg-primary'
                 )}
               />
-              {item.label}
+              <span
+                className={cn(
+                  'flex h-9 w-9 items-center justify-center rounded-xl border transition-all',
+                  isActive
+                    ? 'border-primary/20 bg-primary/10 text-primary'
+                    : 'border-border/60 bg-background/50 text-muted-foreground group-hover:text-foreground'
+                )}
+              >
+                <Icon className="h-4 w-4" />
+              </span>
+              <span className="flex-1 font-medium">{item.label}</span>
+              <span
+                className={cn(
+                  'text-[10px] uppercase tracking-[0.24em] text-muted-foreground transition-opacity',
+                  isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                )}
+              >
+                {item.href === '/' ? 'Hub' : item.href.replace('/', '')}
+              </span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-border/50 space-y-1">
-        <p className="text-xs font-mono tracking-widest text-muted-foreground/50">SYS v0.1.0</p>
-        <p className="text-xs font-mono text-emerald-400/70 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 cyber-dot inline-block" />
-          ONLINE
+      <div className="relative mt-5 rounded-2xl border border-border/60 bg-background/40 p-4">
+        <p className="text-[10px] uppercase tracking-[0.38em] text-muted-foreground">Status</p>
+        <div className="mt-3 flex items-center gap-2">
+          <span className="cyber-dot inline-block h-2.5 w-2.5 rounded-full bg-[hsl(var(--signal-jade))]" />
+          <span className="text-sm font-medium">System Online</span>
+        </div>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+          Build resumes like navigable maps, not static PDFs.
         </p>
+
+        <Link
+          href="/settings"
+          onClick={onNavigate}
+          className={cn(
+            'mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-2 text-sm transition-colors',
+            pathname === '/settings'
+              ? 'border-primary/30 bg-primary/10 text-foreground'
+              : 'border-border/60 bg-background/40 text-muted-foreground hover:border-primary/25 hover:text-foreground'
+          )}
+        >
+          <Settings2 className="h-4 w-4" />
+          AI 设置
+        </Link>
       </div>
-    </aside>
+    </div>
+  );
+}
+
+export function Sidebar() {
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <>
+      <div className="sticky top-0 z-40 flex items-center justify-between border-b border-border/60 bg-background/70 px-4 py-3 backdrop-blur-2xl lg:hidden">
+        <div className="flex items-center gap-3">
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="h-10 w-10 rounded-full">
+                <PanelLeft className="h-4 w-4" />
+                <span className="sr-only">打开导航</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent
+              side="left"
+              className="w-[86vw] max-w-[360px] border-r border-border/60 bg-background/90 p-4"
+            >
+              <SheetTitle className="sr-only">主导航</SheetTitle>
+              <SidebarContent
+                pathname={pathname}
+                mobile
+                onNavigate={() => setMobileOpen(false)}
+              />
+            </SheetContent>
+          </Sheet>
+
+          <div>
+            <p className="text-[10px] uppercase tracking-[0.42em] text-muted-foreground">
+              Darkforest
+            </p>
+            <p className="mt-1 text-sm font-semibold tracking-tight text-gradient-cyber">
+              resume os
+            </p>
+          </div>
+        </div>
+        <ThemeToggle compact />
+      </div>
+
+      <aside className="hidden w-[290px] flex-shrink-0 p-4 lg:flex xl:w-[320px]">
+        <SidebarContent pathname={pathname} />
+      </aside>
+    </>
   );
 }

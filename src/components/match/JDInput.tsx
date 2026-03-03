@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
+import { isAgentTaskTerminatedError } from '@/components/agent/AgentTaskProvider';
 import { Loader2, Plus, Trash2, ChevronRight } from 'lucide-react';
 import { useJDs, useParseJD, useDeleteJD } from '@/lib/hooks/useJD';
 import type { JobDescription } from '@/lib/types/jd';
@@ -27,10 +28,17 @@ export function JDInput({ selectedJdId, onSelect, onDeselect }: JDInputProps) {
 
   async function handleParse() {
     if (!text.trim()) return;
-    const jd = await parseJD.mutateAsync(text.trim());
-    onSelect(jd);
-    setText('');
-    setShowNew(false);
+    try {
+      const jd = await parseJD.mutateAsync(text.trim());
+      onSelect(jd);
+      setText('');
+      setShowNew(false);
+    } catch (error) {
+      if (isAgentTaskTerminatedError(error)) {
+        toast.error('JD 解析任务已终止');
+        return;
+      }
+    }
   }
 
   function handleDelete(e: React.MouseEvent, jd: JobDescription) {

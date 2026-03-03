@@ -1,10 +1,14 @@
 import { callAgent } from '../client';
 import { JD_PARSER_SYSTEM_PROMPT } from '../prompts';
+import type { AIClientConfig } from '../config';
 import type { ParsedJD } from '@/lib/types/jd';
 
 const MAX_JD_CHARS = 8_000;
 
-export async function parseJDFromText(rawText: string): Promise<ParsedJD> {
+export async function parseJDFromText(
+  rawText: string,
+  clientConfig: AIClientConfig,
+): Promise<ParsedJD> {
   const truncated =
     rawText.length > MAX_JD_CHARS
       ? rawText.slice(0, MAX_JD_CHARS) + '\n[...truncated]'
@@ -13,6 +17,7 @@ export async function parseJDFromText(rawText: string): Promise<ParsedJD> {
   const result = await callAgent<ParsedJD>({
     systemPrompt: JD_PARSER_SYSTEM_PROMPT,
     userMessage: `Parse the following job description:\n\n${truncated}`,
+    clientConfig,
     maxTokens: 4096,
   });
 

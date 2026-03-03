@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Item, ItemType, ItemData, ItemSource } from '@/lib/types/item';
+import { fetchJson } from '@/lib/client/fetch-json';
 
 // ---------------------------------------------------------------------------
 // Query key factory
@@ -18,18 +19,6 @@ export const itemKeys = {
 // ---------------------------------------------------------------------------
 // API helpers
 // ---------------------------------------------------------------------------
-
-async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  });
-  if (!res.ok) {
-    const body = await res.text().catch(() => res.statusText);
-    throw new Error(`API ${init?.method ?? 'GET'} ${url} failed (${res.status}): ${body}`);
-  }
-  return res.json() as Promise<T>;
-}
 
 // ---------------------------------------------------------------------------
 // useItems – GET /api/items

@@ -6,6 +6,7 @@ import { matchResults, jobDescriptions, items, profiles } from '@/lib/db/schema'
 import { eq, desc, and } from 'drizzle-orm';
 import { customAlphabet } from 'nanoid';
 import { runMatchAnalysis } from '@/lib/ai/agents/match-agent';
+import { getAIClientConfigFromHeaders, isMissingAIClientConfigError } from '@/lib/ai/config';
 import type { MatchResult } from '@/lib/types/match';
 import type { ParsedJD } from '@/lib/types/jd';
 
@@ -27,18 +28,33 @@ function serializeMatchResult(row: typeof matchResults.$inferSelect): MatchResul
 export async function GET(): Promise<NextResponse> {
   try {
     const rows = await db
-      .select()
+      .select({
+        id: matchResults.id,
+        profileId: matchResults.profileId,
+        jdId: matchResults.jdId,
+        overallScore: matchResults.overallScore,
+        result: matchResults.result,
+        createdAt: matchResults.createdAt,
+        jdParsed: jobDescriptions.parsed,
+      })
       .from(matchResults)
+      .leftJoin(jobDescriptions, eq(matchResults.jdId, jobDescriptions.id))
       .orderBy(desc(matchResults.createdAt));
 
     const results = rows.map((row) => {
       const result = JSON.parse(row.result) as { summary?: string };
+      const parsedJD = row.jdParsed
+        ? (JSON.parse(row.jdParsed) as ParsedJD)
+        : null;
+
       return {
         id: row.id,
         profileId: row.profileId,
         jdId: row.jdId,
         overallScore: row.overallScore,
         summary: result.summary ?? '',
+        company: parsedJD?.company ?? undefined,
+        position: parsedJD?.position ?? undefined,
         createdAt: row.createdAt,
       };
     });
@@ -54,6 +70,7 @@ export async function GET(): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const clientConfig = getAIClientConfigFromHeaders(request.headers);
     const body = await request.json() as { jdId: string };
     const { jdId } = body;
 
@@ -109,7 +126,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
 
     // 5. Run match analysis
-    const analysisResult = await runMatchAnalysis(profileSummary, parsedJD);
+    const analysisResult = await runMatchAnalysis(profileSummary, parsedJD, clientConfig);
 
     // 6. Save match result
     const id = `mr_${nanoid()}`;
@@ -132,7 +149,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to run match analysis', details: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
+      { status: isMissingAIClientConfigError(error) ? 400 : 500 }
     );
   }
 }

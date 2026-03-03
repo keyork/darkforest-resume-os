@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk } from 'next/font/google';
 import './globals.css';
+import { AgentTaskRail } from '@/components/agent/AgentTaskRail';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Providers } from '@/components/Providers';
 import { Toaster } from '@/components/ui/sonner';
@@ -21,14 +22,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh" className="dark" suppressHydrationWarning>
-      <body className={`${spaceGrotesk.variable} font-sans`}>
+    <html lang="zh" suppressHydrationWarning>
+      <body className={`${spaceGrotesk.variable} font-sans antialiased`}>
         <Providers>
-          <div className="flex h-screen bg-background overflow-hidden">
+          <div className="flex min-h-screen flex-col lg:flex-row">
             <Sidebar />
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 min-w-0 overflow-y-auto">
               {children}
             </main>
+            <AgentTaskRail />
           </div>
           <Toaster richColors position="top-right" />
         </Providers>

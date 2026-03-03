@@ -6,6 +6,7 @@ import { generatedResumes, jobDescriptions, matchResults, items, profiles } from
 import { eq, desc, and } from 'drizzle-orm';
 import { customAlphabet } from 'nanoid';
 import { generateResumeMarkdown } from '@/lib/ai/agents/resume-gen-agent';
+import { getAIClientConfigFromHeaders, isMissingAIClientConfigError } from '@/lib/ai/config';
 import type { GeneratedResume, GenerationStrategy, NarrativeStrategy } from '@/lib/types/resume';
 import type { ParsedJD } from '@/lib/types/jd';
 
@@ -51,6 +52,7 @@ export async function GET(): Promise<NextResponse> {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    const clientConfig = getAIClientConfigFromHeaders(request.headers);
     const body = await request.json() as {
       narrative: NarrativeStrategy;
       language: 'zh' | 'en';
@@ -139,7 +141,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       strategy: { narrative, language, length, jdId, matchResultId },
       parsedJD: parsedJD ?? null,
       matchResult: matchResultData ? { resumeStrategy: matchResultData.resumeStrategy } : null,
-    });
+    }, clientConfig);
 
     // 6. Save to DB
     const id = `gr_${nanoid()}`;
@@ -165,7 +167,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to generate resume', details: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
+      { status: isMissingAIClientConfigError(error) ? 400 : 500 }
     );
   }
 }
