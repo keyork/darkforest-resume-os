@@ -23,11 +23,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh" suppressHydrationWarning>
-      <body className={`${spaceGrotesk.variable} font-sans antialiased`}>
+      <body className={`${spaceGrotesk.variable} h-screen overflow-hidden font-sans antialiased`}>
         <Providers>
-          <div className="flex min-h-screen flex-col lg:flex-row">
+          <div className="flex h-screen flex-col overflow-hidden lg:flex-row">
             <Sidebar />
-            <main className="flex-1 min-w-0 overflow-y-auto">
+            <main className="flex min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
               {children}
             </main>
             <AgentTaskRail />

@@ -17,6 +17,7 @@ import { RequirementTable } from '@/components/match/RequirementTable';
 import { GapAnalysis } from '@/components/match/GapAnalysis';
 import { StrategyAdvice } from '@/components/match/StrategyAdvice';
 import { useRunMatch, useMatchResults, useDeleteMatch, useMatchResult } from '@/lib/hooks/useMatch';
+import { useJDs } from '@/lib/hooks/useJD';
 import type { JobDescription } from '@/lib/types/jd';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,7 @@ export default function MatchPage() {
   const [rightTab, setRightTab] = useState<'jd' | 'result'>('jd');
 
   const { data: results = [], isLoading: loadingResults } = useMatchResults();
+  const { data: jds = [] } = useJDs();
   const runMatch = useRunMatch();
   const deleteMatch = useDeleteMatch();
   const { data: activeResult, isLoading: loadingDetail } = useMatchResult(activeResultId ?? '');
@@ -50,32 +52,41 @@ export default function MatchPage() {
   }
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
-      <section className="surface-panel relative overflow-hidden rounded-[32px] px-6 py-7 sm:px-8">
+    <div className="page-shell page-stack">
+      <section className="surface-panel page-hero">
         <div className="absolute -right-8 top-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-rose)/0.18)_0%,transparent_72%)] blur-2xl" />
-        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1 text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+        <div className="page-hero-body">
+          <div className="page-hero-copy">
+            <div className="page-hero-kicker">
               <Orbit className="h-3.5 w-3.5 text-[hsl(var(--signal-rose))]" />
-              Target Lock
+              岗位锁定
             </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-              <span className="text-gradient-cyber">JD 匹配分析</span>
+            <h1 className="page-hero-title mt-4 text-3xl font-semibold sm:text-4xl">
+              <span className="inline-block text-gradient-cyber">JD 匹配分析</span>
             </h1>
-            <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+            <p className="page-hero-summary">
               选择或解析一份职位描述，AI 会把你的档案映射到岗位要求、差距项和简历策略。
             </p>
           </div>
-          <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-background/40 px-3 py-1.5 text-xs text-muted-foreground sm:flex">
-            <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
-            Semantic scoring across five dimensions
+
+          <div className="page-hero-side">
+            <div className="inline-flex items-center gap-2 page-hero-pill">
+              <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
+              五维语义评分
+            </div>
+            <div className="page-hero-pill">
+              差距分析
+            </div>
+            <div className="page-hero-pill">
+              简历策略建议
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="grid flex-1 gap-4 min-h-0 xl:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
         {/* Left panel */}
-        <div className="flex flex-col gap-3 min-h-0 overflow-hidden">
+        <div className="flex flex-col gap-3">
           <Card className="flex-shrink-0">
             <CardHeader className="pb-2 pt-4 px-4">
               <CardTitle className="text-sm">职位描述</CardTitle>
@@ -103,12 +114,12 @@ export default function MatchPage() {
           )}
 
           {/* Match history */}
-          <Card className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <Card className="flex min-h-[18rem] flex-col overflow-hidden">
             <CardHeader className="pb-2 pt-4 px-4 flex-shrink-0">
               <CardTitle className="text-sm">历史匹配</CardTitle>
             </CardHeader>
-            <CardContent className="p-0 flex-1 min-h-0">
-              <ScrollArea className="h-full px-4 pb-4">
+            <CardContent className="p-0">
+              <ScrollArea className="min-h-[14rem] max-h-[26rem] px-4 pb-4">
                 {loadingResults ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -118,36 +129,56 @@ export default function MatchPage() {
                   <p className="text-sm text-muted-foreground py-4 text-center">暂无分析记录</p>
                 ) : (
                   <div className="space-y-1.5">
-                    {results.map((r) => (
-                      <div
-                        key={r.id}
-                        onClick={() => { setActiveResultId(r.id); setRightTab('result'); }}
-                        className={cn(
-                          'flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors hover:bg-muted/50',
-                          activeResultId === r.id && rightTab === 'result'
-                            ? 'border-primary bg-primary/5'
-                            : 'border-transparent bg-muted/30'
-                        )}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium">得分 {Math.round(r.overallScore)}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {format(new Date(r.createdAt), 'MM-dd HH:mm')}
-                          </div>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteMatch.mutate(r.id);
-                            if (activeResultId === r.id) setActiveResultId(null);
+                    {results.map((r) => {
+                      const isActive = activeResultId === r.id && rightTab === 'result';
+                      return (
+                        <div
+                          key={r.id}
+                          onClick={() => {
+                            setActiveResultId(r.id);
+                            setRightTab('result');
+                            const jd = jds.find((j) => j.id === r.jdId);
+                            if (jd) setSelectedJd(jd);
                           }}
-                          className="flex-shrink-0 p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                          className={cn(
+                            'flex items-start gap-2.5 rounded-xl border p-3 cursor-pointer transition-colors hover:bg-muted/50',
+                            isActive ? 'border-primary bg-primary/5' : 'border-transparent bg-muted/30'
+                          )}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 flex-shrink-0" />
-                      </div>
-                    ))}
+                          <div className="flex-1 min-w-0">
+                            <div className="line-clamp-2 break-words text-sm font-medium leading-5">
+                              {r.position ?? '未命名岗位'}
+                              {r.company ? ` · ${r.company}` : ''}
+                            </div>
+                            <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-muted-foreground">
+                              <span className={cn(
+                                'font-semibold tabular-nums',
+                                r.overallScore >= 80 ? 'text-[hsl(var(--signal-jade))]'
+                                  : r.overallScore >= 60 ? 'text-[hsl(var(--signal-gold))]'
+                                  : 'text-[hsl(var(--signal-rose))]'
+                              )}>
+                                {Math.round(r.overallScore)}分
+                              </span>
+                              <span>·</span>
+                              <span>{format(new Date(r.createdAt), 'MM-dd HH:mm')}</span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteMatch.mutate(r.id);
+                              if (activeResultId === r.id) setActiveResultId(null);
+                            }}
+                            className="mt-0.5 flex-shrink-0 p-1 rounded text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                            aria-label="删除匹配记录"
+                            title="删除"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40 flex-shrink-0" />
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </ScrollArea>
@@ -156,7 +187,7 @@ export default function MatchPage() {
         </div>
 
         {/* Right panel */}
-        <Card className="flex flex-col min-h-0 overflow-hidden">
+        <Card className="flex min-h-[34rem] flex-col overflow-hidden">
           {!selectedJd && !activeResult ? (
             <div className="flex items-center justify-center flex-1 text-center">
               <div className="space-y-2">

@@ -140,8 +140,8 @@ export function AgentTaskRail() {
   const activeCount = tasks.filter((task) => task.status === 'planned' || task.status === 'in_progress').length;
 
   return (
-    <aside className="hidden w-[340px] flex-shrink-0 p-4 xl:flex">
-      <Card className="flex h-[calc(100vh-2rem)] w-full flex-col overflow-hidden">
+    <aside className="hidden h-screen w-[300px] flex-shrink-0 overflow-hidden p-3 2xl:sticky 2xl:top-0 2xl:flex">
+      <Card className="flex h-full w-full flex-col overflow-hidden">
         <CardHeader className="border-b border-border/60 pb-4">
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-3">
