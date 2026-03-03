@@ -18,11 +18,11 @@ export function StrategyAdvice({ strategy }: StrategyAdviceProps) {
 
       {strategy.emphasize.length > 0 && (
         <div>
-          <div className="font-medium mb-1.5 text-green-700">重点突出</div>
+          <div className="font-medium mb-1.5 text-emerald-400">重点突出</div>
           <ul className="space-y-1">
             {strategy.emphasize.map((item, i) => (
               <li key={i} className="flex items-start gap-2 text-muted-foreground">
-                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0" />
+                <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
                 {item}
               </li>
             ))}

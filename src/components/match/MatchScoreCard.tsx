@@ -10,15 +10,15 @@ interface MatchScoreCardProps {
 }
 
 function scoreColor(score: number) {
-  if (score >= 80) return 'text-green-600';
-  if (score >= 60) return 'text-yellow-600';
-  return 'text-red-500';
+  if (score >= 80) return 'text-emerald-400';
+  if (score >= 60) return 'text-amber-400';
+  return 'text-rose-400';
 }
 
 function scoreBg(score: number) {
-  if (score >= 80) return 'bg-green-50 border-green-200';
-  if (score >= 60) return 'bg-yellow-50 border-yellow-200';
-  return 'bg-red-50 border-red-200';
+  if (score >= 80) return 'bg-emerald-900/20 border-emerald-700/30';
+  if (score >= 60) return 'bg-amber-900/20 border-amber-700/30';
+  return 'bg-rose-900/20 border-rose-700/30';
 }
 
 const SCORE_LABELS: Record<keyof Omit<MatchScores, 'overall'>, string> = {
@@ -71,7 +71,7 @@ export function MatchScoreCard({ scores, summary }: MatchScoreCardProps) {
                 <div
                   className={cn(
                     'h-full rounded-full transition-all',
-                    score >= 80 ? 'bg-green-500' : score >= 60 ? 'bg-yellow-500' : 'bg-red-400'
+                    score >= 80 ? 'bg-emerald-400' : score >= 60 ? 'bg-amber-400' : 'bg-rose-400'
                   )}
                   style={{ width: `${score}%` }}
                 />

@@ -41,7 +41,7 @@ function SourceBadge({ source }: { source: Item['source'] }) {
   if (source === 'manual') return null;
   if (source === 'ai_parsed') {
     return (
-      <Badge variant="outline" className="text-xs gap-1 border-blue-300 text-blue-600 bg-blue-50">
+      <Badge variant="outline" className="text-xs gap-1 border-cyan-700/50 text-cyan-400 bg-cyan-900/20">
         <Sparkles className="h-3 w-3" /> AI 解析
       </Badge>
     );

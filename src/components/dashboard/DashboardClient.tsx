@@ -48,35 +48,35 @@ export function DashboardClient() {
       value: skills?.length ?? 0,
       icon: Brain,
       href: '/profile?tab=skill',
-      color: 'text-blue-500',
+      color: 'text-cyan-400',
     },
     {
       label: '工作经历',
       value: experiences?.length ?? 0,
       icon: Briefcase,
       href: '/profile?tab=experience',
-      color: 'text-purple-500',
+      color: 'text-violet-400',
     },
     {
       label: '项目',
       value: projects?.length ?? 0,
       icon: FolderOpen,
       href: '/profile?tab=project',
-      color: 'text-green-500',
+      color: 'text-emerald-400',
     },
     {
       label: '教育',
       value: educations?.length ?? 0,
       icon: GraduationCap,
       href: '/profile?tab=education',
-      color: 'text-orange-500',
+      color: 'text-amber-400',
     },
     {
       label: '证书',
       value: certifications?.length ?? 0,
       icon: Award,
       href: '/profile?tab=certification',
-      color: 'text-yellow-500',
+      color: 'text-yellow-400',
     },
   ];
 
@@ -148,7 +148,7 @@ export function DashboardClient() {
                 const Icon = card.icon;
                 return (
                   <Link key={card.label} href={card.href}>
-                    <Card className="hover:border-primary/50 transition-colors cursor-pointer">
+                    <Card className="glow-card-hover cursor-pointer">
                       <CardContent className="p-4 space-y-2">
                         <Icon className={`h-5 w-5 ${card.color}`} />
                         <div>
@@ -165,7 +165,7 @@ export function DashboardClient() {
 
           {/* Quick links */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Card className="hover:border-primary/50 transition-colors">
+            <Card className="glow-card-hover">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Target className="h-4 w-4 text-primary" />
@@ -182,10 +182,10 @@ export function DashboardClient() {
               </CardContent>
             </Card>
 
-            <Card className="hover:border-primary/50 transition-colors">
+            <Card className="glow-card-hover">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-yellow-500" />
+                  <Zap className="h-4 w-4 text-amber-400" />
                   生成简历
                 </CardTitle>
               </CardHeader>

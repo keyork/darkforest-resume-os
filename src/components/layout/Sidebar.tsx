@@ -22,10 +22,13 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 border-r bg-card flex flex-col flex-shrink-0">
+    <aside className="w-56 border-r border-border/50 glass-panel relative flex flex-col flex-shrink-0">
+      {/* Cyan gradient line on right edge */}
+      <div className="absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-primary/40 to-transparent pointer-events-none" />
+
       {/* Logo */}
-      <div className="h-14 flex items-center gap-2 px-4 border-b">
-        <TreePine className="h-5 w-5 text-primary" />
+      <div className="h-14 flex items-center gap-2 px-4 border-b border-border/50">
+        <TreePine className="h-5 w-5 text-primary drop-shadow-[0_0_6px_hsl(195_100%_50%/0.8)]" />
         <span className="font-semibold text-sm tracking-tight">darkforest</span>
       </div>
 
@@ -42,13 +45,18 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors border',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                  ? 'bg-primary/10 text-primary border-primary/30 glow-primary'
+                  : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-accent/50'
               )}
             >
-              <Icon className="h-4 w-4 flex-shrink-0" />
+              <Icon
+                className={cn(
+                  'h-4 w-4 flex-shrink-0',
+                  isActive && 'drop-shadow-[0_0_4px_hsl(195_100%_50%/0.9)]'
+                )}
+              />
               {item.label}
             </Link>
           );
@@ -56,8 +64,8 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t">
-        <p className="text-xs text-muted-foreground">Phase 1 + 2</p>
+      <div className="p-4 border-t border-border/50">
+        <p className="text-xs text-muted-foreground">v0.1.0</p>
       </div>
     </aside>
   );

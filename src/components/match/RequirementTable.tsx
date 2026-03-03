@@ -14,9 +14,9 @@ const PRIORITY_LABEL: Record<RequirementMatch['priority'], string> = {
 };
 
 const PRIORITY_STYLE: Record<RequirementMatch['priority'], string> = {
-  critical: 'bg-red-100 text-red-700 border-red-200',
-  important: 'bg-blue-100 text-blue-700 border-blue-200',
-  nice_to_have: 'bg-gray-100 text-gray-600 border-gray-200',
+  critical: 'bg-rose-900/30 text-rose-400 border-rose-700/40',
+  important: 'bg-cyan-900/30 text-cyan-400 border-cyan-700/40',
+  nice_to_have: 'bg-violet-900/30 text-violet-400 border-violet-700/40',
 };
 
 const STATUS_LABEL: Record<RequirementMatch['status'], string> = {
@@ -27,17 +27,17 @@ const STATUS_LABEL: Record<RequirementMatch['status'], string> = {
 };
 
 const STATUS_STYLE: Record<RequirementMatch['status'], string> = {
-  strong_match: 'text-green-600',
-  partial_match: 'text-yellow-600',
-  weak_match: 'text-orange-500',
-  no_match: 'text-red-500',
+  strong_match: 'text-emerald-400',
+  partial_match: 'text-amber-400',
+  weak_match: 'text-orange-400',
+  no_match: 'text-rose-400',
 };
 
 const STATUS_DOT: Record<RequirementMatch['status'], string> = {
-  strong_match: 'bg-green-500',
-  partial_match: 'bg-yellow-500',
+  strong_match: 'bg-emerald-400',
+  partial_match: 'bg-amber-400',
   weak_match: 'bg-orange-400',
-  no_match: 'bg-red-400',
+  no_match: 'bg-rose-400',
 };
 
 export function RequirementTable({ matches }: RequirementTableProps) {

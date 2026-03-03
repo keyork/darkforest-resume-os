@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { db, serializeProfile } from '@/lib/db';
-import { profiles } from '@/lib/db/schema';
+import { profiles, items } from '@/lib/db/schema';
 import type { Profile, Contact } from '@/lib/types/profile';
 import { eq } from 'drizzle-orm';
 
@@ -69,6 +69,28 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
   } catch (error) {
     return NextResponse.json(
       { error: 'Failed to update profile', details: error instanceof Error ? error.message : error },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(): Promise<NextResponse> {
+  try {
+    const now = new Date().toISOString();
+
+    // Delete all items for the default profile
+    await db.delete(items).where(eq(items.profileId, PROFILE_DEFAULT_ID));
+
+    // Reset profile fields to blank
+    await db
+      .update(profiles)
+      .set({ name: '', title: '', summary: '', contact: '{}', updatedAt: now })
+      .where(eq(profiles.id, PROFILE_DEFAULT_ID));
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to reset profile', details: error instanceof Error ? error.message : error },
       { status: 500 }
     );
   }

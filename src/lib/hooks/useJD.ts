@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { JobDescription } from '@/lib/types/jd';
+import { toast } from 'sonner';
 
 export const jdKeys = {
   all: ['jd'] as const,
@@ -65,7 +66,21 @@ export function useDeleteJD() {
       await fetchJson(`/api/jd/${id}`, { method: 'DELETE' });
       return id;
     },
-    onSuccess: () => {
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({ queryKey: jdKeys.lists() });
+      const prev = queryClient.getQueryData<JobDescription[]>(jdKeys.lists());
+      queryClient.setQueryData<JobDescription[]>(jdKeys.lists(), (old) =>
+        old ? old.filter((jd) => jd.id !== id) : []
+      );
+      return { prev };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.prev) {
+        queryClient.setQueryData(jdKeys.lists(), ctx.prev);
+      }
+      toast.error('删除失败，请重试');
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: jdKeys.lists() });
     },
   });

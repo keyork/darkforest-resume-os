@@ -4,13 +4,25 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useProfile, useUpdateProfile } from '@/lib/hooks/useProfile';
+import { useProfile, useUpdateProfile, useResetProfile } from '@/lib/hooks/useProfile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Pencil, Check, X, Mail, Phone, MapPin, Globe, Linkedin, Github } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Pencil, Check, X, Mail, Phone, MapPin, Globe, Linkedin, Github, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import type { Contact } from '@/lib/types/profile';
 
@@ -31,7 +43,13 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 export function ProfileHeader() {
   const { data: profile, isLoading } = useProfile();
   const updateProfile = useUpdateProfile();
+  const resetProfile = useResetProfile();
   const [isEditing, setIsEditing] = useState(false);
+
+  async function handleReset() {
+    await resetProfile.mutateAsync();
+    toast.success('简历数据已清空');
+  }
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -230,14 +248,46 @@ export function ProfileHeader() {
             </>
           )}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2"
-          onClick={(e) => { e.stopPropagation(); startEdit(); }}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
+        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => { e.stopPropagation(); startEdit(); }}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-destructive"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>清空所有简历数据？</AlertDialogTitle>
+                <AlertDialogDescription>
+                  此操作将删除所有技能、工作经历、项目、教育背景和证书，并清空个人信息。
+                  不可撤销，建议先导出后再操作。
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>取消</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={handleReset}
+                >
+                  确认清空
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
     </div>
   );

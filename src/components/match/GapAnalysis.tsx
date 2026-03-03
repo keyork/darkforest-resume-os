@@ -15,9 +15,9 @@ const SEVERITY_LABEL: Record<GapItem['severity'], string> = {
 };
 
 const SEVERITY_STYLE: Record<GapItem['severity'], string> = {
-  high: 'bg-red-50 border-red-200 text-red-700',
-  medium: 'bg-yellow-50 border-yellow-200 text-yellow-700',
-  low: 'bg-blue-50 border-blue-200 text-blue-700',
+  high: 'bg-rose-900/20 border-rose-700/30 text-rose-400',
+  medium: 'bg-amber-900/20 border-amber-700/30 text-amber-400',
+  low: 'bg-cyan-900/20 border-cyan-700/30 text-cyan-400',
 };
 
 export function GapAnalysis({ gaps }: GapAnalysisProps) {
