@@ -46,6 +46,32 @@ export default function GeneratePage() {
   const generateResume = useGenerateResume();
   const deleteResume = useDeleteGeneratedResume();
 
+  // Only show match results that belong to the selected JD (if one is chosen)
+  const filteredMatchResults =
+    selectedJdId !== 'none'
+      ? matchResults.filter((r) => r.jdId === selectedJdId)
+      : matchResults;
+
+  function handleJdChange(value: string) {
+    setSelectedJdId(value);
+    // Clear match selection if it doesn't belong to the newly chosen JD
+    if (selectedMatchId !== 'none') {
+      const currentMatch = matchResults.find((r) => r.id === selectedMatchId);
+      if (!currentMatch || currentMatch.jdId !== value) {
+        setSelectedMatchId('none');
+      }
+    }
+  }
+
+  function handleMatchChange(value: string) {
+    setSelectedMatchId(value);
+    // Auto-sync JD to whichever JD this match result belongs to
+    if (value !== 'none') {
+      const match = matchResults.find((r) => r.id === value);
+      if (match?.jdId) setSelectedJdId(match.jdId);
+    }
+  }
+
   async function handleGenerate() {
     try {
       const result = await generateResume.mutateAsync({
@@ -62,32 +88,41 @@ export default function GeneratePage() {
   }
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
-      <section className="surface-panel relative overflow-hidden rounded-[32px] px-6 py-7 sm:px-8">
+    <div className="page-shell page-stack">
+      <section className="surface-panel page-hero">
         <div className="absolute -right-10 top-2 h-36 w-36 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-solar)/0.18)_0%,transparent_72%)] blur-2xl" />
-        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1 text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+        <div className="page-hero-body">
+          <div className="page-hero-copy">
+            <div className="page-hero-kicker">
               <Orbit className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
-              Resume Forge
+              简历工坊
             </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-              <span className="text-gradient-cyber">简历生成</span>
+            <h1 className="page-hero-title mt-3 text-3xl font-semibold md:text-[2.15rem] xl:text-[2.35rem]">
+              <span className="inline-block text-gradient-cyber">简历生成</span>
             </h1>
-            <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+            <p className="page-hero-summary">
               选择叙事策略、语言和上下文，让 AI 输出一份能直接复制、下载、继续微调的 Markdown 简历。
             </p>
           </div>
-          <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-background/40 px-3 py-1.5 text-xs text-muted-foreground sm:flex">
-            <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-jade))]" />
-            Strategy-guided generation
+
+          <div className="page-hero-side">
+            <div className="inline-flex items-center gap-2 page-hero-pill">
+              <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-jade))]" />
+              多策略生成
+            </div>
+            <div className="page-hero-pill">
+              Markdown 直接导出
+            </div>
+            <div className="page-hero-pill">
+              可叠加 JD 与匹配上下文
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="grid flex-1 gap-4 min-h-0 xl:grid-cols-[320px_minmax(0,1fr)]">
+      <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
         {/* Left panel */}
-        <div className="flex flex-col gap-4 min-h-0">
+        <div className="flex flex-col gap-4">
           <StrategyPanel value={strategy} onChange={setStrategy} />
 
           {/* Optional JD / Match context */}
@@ -98,7 +133,7 @@ export default function GeneratePage() {
             <CardContent className="space-y-3">
               <div className="space-y-1.5">
                 <Label className="text-xs">关联 JD</Label>
-                <Select value={selectedJdId} onValueChange={setSelectedJdId}>
+                <Select value={selectedJdId} onValueChange={handleJdChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="不关联" />
                   </SelectTrigger>
@@ -106,7 +141,7 @@ export default function GeneratePage() {
                     <SelectItem value="none">不关联</SelectItem>
                     {jds.map((jd) => (
                       <SelectItem key={jd.id} value={jd.id}>
-                        {jd.parsed?.position ?? jd.id}
+                        {jd.parsed?.position ?? '未命名岗位'}
                         {jd.parsed?.company ? ` · ${jd.parsed.company}` : ''}
                       </SelectItem>
                     ))}
@@ -115,16 +150,24 @@ export default function GeneratePage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">关联匹配结果</Label>
-                <Select value={selectedMatchId} onValueChange={setSelectedMatchId}>
+                <Label className="text-xs">
+                  关联匹配结果
+                  {selectedJdId !== 'none' && filteredMatchResults.length === 0 && (
+                    <span className="ml-1.5 text-muted-foreground/60">（该 JD 暂无匹配记录）</span>
+                  )}
+                </Label>
+                <Select value={selectedMatchId} onValueChange={handleMatchChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="不关联" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">不关联</SelectItem>
-                    {matchResults.map((r) => (
+                    {filteredMatchResults.map((r) => (
                       <SelectItem key={r.id} value={r.id}>
-                        得分 {Math.round(r.overallScore)} · {format(new Date(r.createdAt), 'MM-dd HH:mm')}
+                        {r.position ?? '未命名岗位'}
+                        {r.company ? ` · ${r.company}` : ''}
+                        {' · '}{Math.round(r.overallScore)}分
+                        {' · '}{format(new Date(r.createdAt), 'MM-dd')}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -147,12 +190,12 @@ export default function GeneratePage() {
           )}
 
           {/* History */}
-          <Card className="flex-1 min-h-0">
+          <Card className="flex min-h-[18rem] flex-col overflow-hidden">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">历史简历</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="h-40 px-4 pb-4">
+              <ScrollArea className="min-h-[14rem] max-h-[26rem] px-4 pb-4">
                 {loadingList ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -162,37 +205,47 @@ export default function GeneratePage() {
                   <p className="text-sm text-muted-foreground py-4 text-center">暂无生成记录</p>
                 ) : (
                   <div className="space-y-2">
-                    {resumes.map((r) => (
-                      <div
-                        key={r.id}
-                        onClick={() => setActiveResumeId(r.id)}
-                        className={cn(
-                          'group flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-colors hover:bg-muted/50',
-                          activeResumeId === r.id && 'border-primary bg-primary/5'
-                        )}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium truncate">
-                            {(r.strategy as StrategyConfig).narrative} ·{' '}
-                            {(r.strategy as StrategyConfig).language === 'zh' ? '中文' : 'EN'} ·{' '}
-                            {(r.strategy as StrategyConfig).length}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            {format(new Date(r.createdAt), 'MM-dd HH:mm')}
-                          </div>
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteResume.mutate(r.id);
-                            if (activeResumeId === r.id) setActiveResumeId(null);
+                    {resumes.map((r) => {
+                      const linkedJd = r.jdId ? jds.find((j) => j.id === r.jdId) : null;
+                      return (
+                        <div
+                          key={r.id}
+                          onClick={() => {
+                            setActiveResumeId(r.id);
+                            // Restore the JD and match context this resume was generated with
+                            setSelectedJdId(r.jdId ?? 'none');
+                            setSelectedMatchId(r.matchResultId ?? 'none');
                           }}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 text-muted-foreground hover:text-destructive"
+                          className={cn(
+                            'group flex items-start gap-2.5 rounded-xl border p-3 cursor-pointer transition-colors hover:bg-muted/50',
+                            activeResumeId === r.id && 'border-primary bg-primary/5'
+                          )}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    ))}
+                          <div className="flex-1 min-w-0">
+                            <div className="line-clamp-2 break-words text-sm font-medium leading-5">
+                              {linkedJd?.parsed?.position
+                                ? `${linkedJd.parsed.position}${linkedJd.parsed.company ? ` · ${linkedJd.parsed.company}` : ''}`
+                                : (r.strategy as StrategyConfig).narrative + ' · ' + ((r.strategy as StrategyConfig).language === 'zh' ? '中文' : 'EN')}
+                            </div>
+                            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                              {(r.strategy as StrategyConfig).length} · {format(new Date(r.createdAt), 'MM-dd HH:mm')}
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteResume.mutate(r.id);
+                              if (activeResumeId === r.id) setActiveResumeId(null);
+                            }}
+                            className="mt-0.5 flex-shrink-0 p-1 rounded text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                            aria-label="删除简历记录"
+                            title="删除"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </ScrollArea>
@@ -201,7 +254,7 @@ export default function GeneratePage() {
         </div>
 
         {/* Right panel — preview */}
-        <Card className="flex flex-col min-h-0 overflow-hidden">
+        <Card className="flex min-h-[32rem] flex-col overflow-hidden">
           {loadingContent ? (
             <div className="flex items-center justify-center flex-1 text-muted-foreground gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />

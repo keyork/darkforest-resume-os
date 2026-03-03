@@ -191,7 +191,7 @@ export function Sidebar() {
         <ThemeToggle compact />
       </div>
 
-      <aside className="hidden w-[290px] flex-shrink-0 p-4 lg:flex xl:w-[320px]">
+      <aside className="hidden h-screen w-[252px] flex-shrink-0 overflow-hidden p-3 lg:sticky lg:top-0 lg:flex xl:w-[272px] 2xl:w-[288px]">
         <SidebarContent pathname={pathname} />
       </aside>
     </>

@@ -92,40 +92,40 @@ export function DashboardClient() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-8 px-4 py-6 sm:px-6 lg:px-10">
-      <section className="surface-panel relative overflow-hidden rounded-[34px] px-6 py-7 sm:px-8 sm:py-8">
+    <div className="page-shell space-y-6">
+      <section className="surface-panel relative overflow-hidden rounded-[32px] px-5 py-6 sm:px-6 sm:py-6">
         <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,hsl(var(--glow-solar)/0.24),transparent_68%)]" />
         <div className="absolute -right-16 top-8 h-48 w-48 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-rose)/0.18)_0%,transparent_70%)] blur-2xl" />
         <div className="absolute bottom-0 left-1/3 h-40 w-40 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-jade)/0.16)_0%,transparent_70%)] blur-2xl" />
 
-        <div className="relative flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl space-y-5">
+        <div className="relative space-y-5">
+          <div className="max-w-3xl space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1 text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
               <Orbit className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
               Career Observatory
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
+            <div className="space-y-2.5">
+              <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center">
                 <TreePine className="h-7 w-7 text-primary" />
-                <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
+                <h1 className="page-hero-title min-w-0 text-3xl font-semibold md:text-4xl xl:text-[2.8rem]">
                   {profileLoading ? (
                     <Skeleton className="h-10 w-56" />
                   ) : (
-                    <span className="text-gradient-cyber">
+                    <span className="inline-block text-gradient-cyber">
                       {profile?.name ? `你好，${profile.name}` : 'Build a resume galaxy'}
                     </span>
                   )}
                 </h1>
               </div>
-              <p className="max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
+              <p className="max-w-[46rem] text-sm leading-6 text-muted-foreground sm:text-[15px]">
                 {hasData
                   ? `你的能力图谱已上线${profile?.title ? `，当前轨道聚焦 ${profile.title}` : ''}。现在可以把经历、技能和目标岗位组织成一份更锋利的叙事。`
                   : '把履历拆成可计算的模块，再用 AI 让它针对不同岗位重新编排。先上传旧简历，或者直接手动搭建你的职业宇宙。'}
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5">
               <Button size="lg" onClick={() => setImportOpen(true)} className="gap-2.5">
                 <Upload className="h-4 w-4" />
                 上传我的简历
@@ -139,7 +139,7 @@ export function DashboardClient() {
               </Button>
             </div>
 
-            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+            <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground sm:text-xs">
               <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1">
                 Structured Items
               </span>
@@ -152,8 +152,8 @@ export function DashboardClient() {
             </div>
           </div>
 
-          <div className="grid w-full gap-3 sm:grid-cols-3 lg:max-w-md lg:grid-cols-1">
-            <div className="rounded-[26px] border border-border/70 bg-background/40 p-4">
+          <div className="grid gap-2.5 sm:grid-cols-3">
+            <div className="rounded-[24px] border border-border/70 bg-background/40 p-3.5">
               <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
                 Atlas State
               </div>
@@ -165,14 +165,14 @@ export function DashboardClient() {
               </div>
             </div>
 
-            <div className="rounded-[26px] border border-border/70 bg-background/40 p-4">
+            <div className="rounded-[24px] border border-border/70 bg-background/40 p-3.5">
               <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
                 Total Items
               </div>
               <div className="mt-3 text-4xl font-semibold tabular-nums">{totalItems}</div>
             </div>
 
-            <div className="rounded-[26px] border border-border/70 bg-background/40 p-4">
+            <div className="rounded-[24px] border border-border/70 bg-background/40 p-3.5">
               <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5 text-[hsl(var(--signal-gold))]" />
                 Narrative Readiness

@@ -3,13 +3,20 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { AlertTriangle, ExternalLink, KeyRound, Orbit, ServerCog, ShieldAlert, Sparkles } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ExternalLink, KeyRound, Loader2, Orbit, ServerCog, ShieldAlert, Sparkles, Wifi, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { clearAISettings, DEFAULT_AI_MODEL, getStoredAISettings, hasStoredAISettings, saveAISettings } from '@/lib/client/ai-settings';
+import { AI_API_KEY_HEADER, AI_BASE_URL_HEADER, AI_MODEL_HEADER } from '@/lib/ai/config';
 
 const PROVIDER_GUIDES = [
   {
@@ -41,6 +48,12 @@ export default function SettingsPage() {
   const [modelName, setModelName] = useState(DEFAULT_AI_MODEL);
   const [mounted, setMounted] = useState(false);
 
+  type TestState = 'idle' | 'loading' | 'ok' | 'error';
+  const [testState, setTestState] = useState<TestState>('idle');
+  const [testDialogOpen, setTestDialogOpen] = useState(false);
+  const [testModel, setTestModel] = useState('');
+  const [testMessage, setTestMessage] = useState('');
+
   useEffect(() => {
     const settings = getStoredAISettings();
     setApiKey(settings.apiKey);
@@ -65,6 +78,38 @@ export default function SettingsPage() {
     toast.success('AI 设置已保存到当前浏览器');
   }
 
+  async function handleTest() {
+    if (!apiKey.trim() || !baseURL.trim()) {
+      toast.error('请先填写 API Key 和 Base URL');
+      return;
+    }
+    setTestState('loading');
+    setTestDialogOpen(true);
+    setTestMessage('');
+    setTestModel('');
+    try {
+      const headers = new Headers({ 'Content-Type': 'application/json' });
+      headers.set(AI_API_KEY_HEADER, apiKey.trim());
+      headers.set(AI_BASE_URL_HEADER, baseURL.trim());
+      if (modelName.trim()) headers.set(AI_MODEL_HEADER, modelName.trim());
+
+      const res = await fetch('/api/ai/test', { method: 'POST', headers });
+      const data = await res.json() as { ok: boolean; model?: string; reply?: string; error?: string };
+
+      if (data.ok) {
+        setTestState('ok');
+        setTestModel(data.model ?? '');
+        setTestMessage(data.reply ?? 'OK');
+      } else {
+        setTestState('error');
+        setTestMessage(data.error ?? 'Unknown error');
+      }
+    } catch (e) {
+      setTestState('error');
+      setTestMessage((e as Error).message);
+    }
+  }
+
   function handleClear() {
     clearAISettings();
     setApiKey('');
@@ -74,24 +119,24 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-10">
-      <section className="surface-panel relative overflow-hidden rounded-[32px] px-6 py-7 sm:px-8">
+    <div className="page-shell page-stack">
+      <section className="surface-panel page-hero">
         <div className="absolute -right-10 top-2 h-36 w-36 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-solar)/0.18)_0%,transparent_72%)] blur-2xl" />
-        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1 text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+        <div className="page-hero-body">
+          <div className="page-hero-copy">
+            <div className="page-hero-kicker">
               <Orbit className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
               AI 设置
             </div>
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-              <span className="text-gradient-cyber">连接你的模型服务</span>
+            <h1 className="page-hero-title mt-4 text-3xl font-semibold sm:text-4xl">
+              <span className="inline-block text-gradient-cyber">连接你的模型服务</span>
             </h1>
-            <p className="mt-3 text-sm leading-7 text-muted-foreground sm:text-base">
+            <p className="page-hero-summary">
               这个项目现在只从前端页面读取 API Key、Base URL 和模型名，不再依赖 `.env` 文件。
               你保存的内容只会存放在当前浏览器的 localStorage 中，并在发起 AI 请求时随请求一起发送到服务端。
             </p>
           </div>
-          <div className="rounded-full border border-border/70 bg-background/40 px-4 py-2 text-sm text-muted-foreground">
+          <div className="page-hero-pill text-sm">
             当前状态：{isConfigured ? '已配置' : '未配置'}
           </div>
         </div>
@@ -164,6 +209,19 @@ export default function SettingsPage() {
                 <KeyRound className="h-4 w-4" />
                 保存设置
               </Button>
+              <Button
+                variant="outline"
+                onClick={handleTest}
+                disabled={testState === 'loading'}
+                className="gap-2"
+              >
+                {testState === 'loading' ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Wifi className="h-4 w-4" />
+                )}
+                测试连接
+              </Button>
               <Button variant="outline" onClick={handleClear}>
                 清空设置
               </Button>
@@ -177,7 +235,7 @@ export default function SettingsPage() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <Sparkles className="h-4 w-4 text-[hsl(var(--signal-gold))]" />
                 去哪里拿 API Key、Base URL 和模型名
               </CardTitle>
@@ -225,6 +283,59 @@ export default function SettingsPage() {
           </Alert>
         </div>
       </div>
+
+      <Dialog open={testDialogOpen} onOpenChange={setTestDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wifi className="h-4 w-4 text-primary" />
+              连接测试
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="pt-2">
+            {testState === 'loading' && (
+              <div className="flex items-center gap-3 text-muted-foreground py-4">
+                <Loader2 className="h-5 w-5 animate-spin flex-shrink-0" />
+                <span className="text-sm">正在发送测试请求，请稍候…</span>
+              </div>
+            )}
+
+            {testState === 'ok' && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-[hsl(var(--signal-jade))]">
+                  <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
+                  <span className="font-medium">连接成功</span>
+                </div>
+                {testModel && (
+                  <div className="rounded-lg border border-border/60 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+                    <span className="font-mono">model: {testModel}</span>
+                  </div>
+                )}
+                <div className="rounded-lg border border-[hsl(var(--signal-jade)/0.3)] bg-[hsl(var(--signal-jade)/0.06)] px-3 py-2 text-sm">
+                  <span className="text-muted-foreground">模型回复：</span>
+                  <span className="font-medium">{testMessage}</span>
+                </div>
+              </div>
+            )}
+
+            {testState === 'error' && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-[hsl(var(--signal-rose))]">
+                  <XCircle className="h-5 w-5 flex-shrink-0" />
+                  <span className="font-medium">连接失败</span>
+                </div>
+                <div className="rounded-lg border border-[hsl(var(--signal-rose)/0.3)] bg-[hsl(var(--signal-rose)/0.06)] px-3 py-2 text-sm break-all text-muted-foreground">
+                  {testMessage}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  请检查 API Key 是否有效、Base URL 是否正确（需以 <code className="font-mono">/v1</code> 结尾）、模型名是否可用。
+                </p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,5 +1,9 @@
-import { callAgentText } from '../client';
-import { RESUME_GEN_SYSTEM_PROMPT } from '../prompts';
+import { callAgent, callAgentText } from '../client';
+import {
+  RESUME_GEN_SYSTEM_PROMPT,
+  RESUME_PLAN_SYSTEM_PROMPT,
+  RESUME_REVIEW_SYSTEM_PROMPT,
+} from '../prompts';
 import type { AIClientConfig } from '../config';
 import type { GenerationStrategy } from '@/lib/types/resume';
 import type { Item } from '@/lib/types/item';
@@ -16,6 +20,26 @@ export interface ResumeGenInput {
   parsedJD?: ParsedJD | null;
   matchResult?: Pick<MatchResult, 'resumeStrategy'> | null;
 }
+
+interface ResumeGenerationPlan {
+  targetHeadline: string;
+  narrativeFocus: string;
+  sectionOrder: string[];
+  mustEmphasize: string[];
+  shouldDeemphasize: string[];
+  keywordTargets: string[];
+  writingGuidelines: string[];
+  riskChecks: string[];
+}
+
+interface ResumeGenerationReview {
+  passed: boolean;
+  strengths: string[];
+  issues: string[];
+  revisionInstructions: string[];
+}
+
+const MAX_REVIEW_REVISIONS = 1;
 
 function serializeItems(items: Item[]): string {
   const sections: string[] = [];
@@ -137,6 +161,98 @@ export async function generateResumeMarkdown(
     matchResult,
   } = input;
 
+  const baseContext = buildResumeGenerationContext({
+    profileName,
+    profileTitle,
+    profileSummary,
+    profileContact,
+    visibleItems,
+    strategy,
+    parsedJD,
+    matchResult,
+  });
+
+  const plan = await callAgent<ResumeGenerationPlan>({
+    systemPrompt: RESUME_PLAN_SYSTEM_PROMPT,
+    userMessage: baseContext,
+    clientConfig,
+    maxTokens: 4096,
+  });
+
+  let markdown = await callAgentText({
+    systemPrompt: RESUME_GEN_SYSTEM_PROMPT,
+    userMessage: [
+      baseContext,
+      '',
+      '## Approved Resume Plan',
+      '',
+      formatResumePlan(plan),
+    ].join('\n'),
+    clientConfig,
+    maxTokens: 8192,
+  });
+
+  for (let revision = 0; revision <= MAX_REVIEW_REVISIONS; revision += 1) {
+    const review = await callAgent<ResumeGenerationReview>({
+      systemPrompt: RESUME_REVIEW_SYSTEM_PROMPT,
+      userMessage: [
+        baseContext,
+        '',
+        '## Approved Resume Plan',
+        '',
+        formatResumePlan(plan),
+        '',
+        '## Draft Resume Markdown',
+        '',
+        markdown,
+      ].join('\n'),
+      clientConfig,
+      maxTokens: 4096,
+    });
+
+    if (review.passed || revision === MAX_REVIEW_REVISIONS) {
+      return markdown;
+    }
+
+    markdown = await callAgentText({
+      systemPrompt: RESUME_GEN_SYSTEM_PROMPT,
+      userMessage: [
+        baseContext,
+        '',
+        '## Approved Resume Plan',
+        '',
+        formatResumePlan(plan),
+        '',
+        '## Previous Draft',
+        '',
+        markdown,
+        '',
+        '## Review Feedback',
+        '',
+        formatResumeReview(review),
+        '',
+        'Please revise the previous draft according to the review feedback while preserving accurate facts and Markdown structure.',
+      ].join('\n'),
+      clientConfig,
+      maxTokens: 8192,
+    });
+  }
+
+  return markdown;
+}
+
+function buildResumeGenerationContext(input: ResumeGenInput): string {
+  const {
+    profileName,
+    profileTitle,
+    profileSummary,
+    profileContact,
+    visibleItems,
+    strategy,
+    parsedJD,
+    matchResult,
+  } = input;
+
   const contactLines = Object.entries(profileContact)
     .filter(([, v]) => v != null && v !== '')
     .map(([k, v]) => `${k}: ${v}`)
@@ -183,14 +299,35 @@ export async function generateResumeMarkdown(
     );
   }
 
-  const userMessage = messageParts.filter((line) => line !== undefined).join('\n');
+  return messageParts.filter((line) => line !== undefined).join('\n');
+}
 
-  const markdown = await callAgentText({
-    systemPrompt: RESUME_GEN_SYSTEM_PROMPT,
-    userMessage,
-    clientConfig,
-    maxTokens: 8192,
-  });
+function formatResumePlan(plan: ResumeGenerationPlan): string {
+  return JSON.stringify(
+    {
+      targetHeadline: plan.targetHeadline ?? '',
+      narrativeFocus: plan.narrativeFocus ?? '',
+      sectionOrder: plan.sectionOrder ?? [],
+      mustEmphasize: plan.mustEmphasize ?? [],
+      shouldDeemphasize: plan.shouldDeemphasize ?? [],
+      keywordTargets: plan.keywordTargets ?? [],
+      writingGuidelines: plan.writingGuidelines ?? [],
+      riskChecks: plan.riskChecks ?? [],
+    },
+    null,
+    2,
+  );
+}
 
-  return markdown;
+function formatResumeReview(review: ResumeGenerationReview): string {
+  return JSON.stringify(
+    {
+      passed: Boolean(review.passed),
+      strengths: review.strengths ?? [],
+      issues: review.issues ?? [],
+      revisionInstructions: review.revisionInstructions ?? [],
+    },
+    null,
+    2,
+  );
 }
