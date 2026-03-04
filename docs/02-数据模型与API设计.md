@@ -344,4 +344,3 @@
 - 没有严格 schema validation 中间层
 - 多数 JSON 解析依赖 TypeScript 类型约束而不是运行时校验
 - 目前适合单机、单用户、本地使用场景
-
