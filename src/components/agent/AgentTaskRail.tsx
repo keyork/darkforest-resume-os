@@ -60,24 +60,27 @@ function TaskRow({ task }: { task: AgentTask }) {
   const canTerminate = task.status === 'planned' || task.status === 'in_progress';
 
   return (
-    <div className="rounded-[24px] border border-border/70 bg-background/30 p-4">
+    <div className="w-full overflow-hidden rounded-[24px] border border-border/70 bg-background/30 p-4">
       <div className="flex items-start gap-3">
-        <div className="mt-0.5 rounded-2xl border border-primary/20 bg-primary/10 p-2 text-primary">
+        <div className="mt-0.5 flex-shrink-0 rounded-2xl border border-primary/20 bg-primary/10 p-2 text-primary">
           <Bot className="h-4 w-4" />
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-sm font-medium leading-6">{task.title}</div>
+          <div className="flex min-w-0 flex-col items-start gap-2.5">
+            <div className="min-w-0 w-full">
+              <div className="break-words text-sm font-medium leading-6">{task.title}</div>
               {task.description ? (
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                <p className="mt-1 break-words text-xs leading-5 text-muted-foreground">
                   {task.description}
                 </p>
               ) : null}
             </div>
 
-            <Badge variant="outline" className={cn('gap-1 whitespace-nowrap', statusMeta.className)}>
+            <Badge
+              variant="outline"
+              className={cn('max-w-full gap-1 self-start whitespace-nowrap', statusMeta.className)}
+            >
               <StatusIcon className="h-3 w-3" />
               {statusMeta.label}
             </Badge>
@@ -93,7 +96,7 @@ function TaskRow({ task }: { task: AgentTask }) {
           </div>
 
           {task.successMessage ? (
-            <p className="mt-3 text-xs leading-5 text-[hsl(var(--signal-jade))]">
+            <p className="mt-3 break-words text-xs leading-5 text-[hsl(var(--signal-jade))]">
               {task.successMessage}
             </p>
           ) : null}
@@ -101,7 +104,7 @@ function TaskRow({ task }: { task: AgentTask }) {
           {task.errorMessage ? (
             <p
               className={cn(
-                'mt-3 text-xs leading-5',
+                'mt-3 break-words text-xs leading-5',
                 task.status === 'failed' ? 'text-destructive' : 'text-muted-foreground'
               )}
             >
@@ -109,7 +112,7 @@ function TaskRow({ task }: { task: AgentTask }) {
             </p>
           ) : null}
 
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             {canTerminate ? (
               <Button
                 size="sm"
@@ -140,12 +143,12 @@ export function AgentTaskRail() {
   const activeCount = tasks.filter((task) => task.status === 'planned' || task.status === 'in_progress').length;
 
   return (
-    <aside className="hidden h-screen w-[300px] flex-shrink-0 overflow-hidden p-3 2xl:sticky 2xl:top-0 2xl:flex">
+    <aside className="hidden h-screen w-[320px] flex-shrink-0 overflow-hidden p-3 2xl:sticky 2xl:top-0 2xl:flex">
       <Card className="flex h-full w-full flex-col overflow-hidden">
-        <CardHeader className="border-b border-border/60 pb-4">
+        <CardHeader className="min-w-0 border-b border-border/60 pb-4">
           <div className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <CardTitle className="text-lg">Agent 任务</CardTitle>
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+              <CardTitle className="min-w-0 text-lg">Agent 任务</CardTitle>
               <div className="flex flex-shrink-0 items-center gap-2 rounded-full border border-[hsl(var(--signal-solar)/0.28)] bg-[hsl(var(--signal-solar)/0.12)] px-3 py-1.5 text-[hsl(var(--signal-solar))]">
                 <TimerReset className="h-3.5 w-3.5" />
                 <span className="text-[11px] uppercase tracking-[0.22em] text-[hsl(var(--signal-solar))]">
@@ -176,24 +179,26 @@ export function AgentTaskRail() {
         </CardHeader>
 
         <CardContent className="min-h-0 flex-1 p-0">
-          <ScrollArea className="h-full px-4 py-4">
-            {tasks.length === 0 ? (
-              <div className="flex h-full min-h-[220px] items-center justify-center text-center">
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">暂无任务</div>
-                  <p className="text-sm leading-6 text-muted-foreground">
-                    当你发起 JD 解析、匹配分析、简历生成或简历导入解析时，
-                    任务会显示在这里。
-                  </p>
+          <ScrollArea className="h-full">
+            <div className="min-h-full px-4 py-4 pr-6">
+              {tasks.length === 0 ? (
+                <div className="flex h-full min-h-[220px] items-center justify-center text-center">
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">暂无任务</div>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      当你发起 JD 解析、匹配分析、简历生成或简历导入解析时，
+                      任务会显示在这里。
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {tasks.map((task) => (
-                  <TaskRow key={task.id} task={task} />
-                ))}
-              </div>
-            )}
+              ) : (
+                <div className="space-y-3">
+                  {tasks.map((task) => (
+                    <TaskRow key={task.id} task={task} />
+                  ))}
+                </div>
+              )}
+            </div>
           </ScrollArea>
         </CardContent>
       </Card>
