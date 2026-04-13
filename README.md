@@ -1,56 +1,135 @@
 # darkforest-resume-os
 
-基于 LLM Agent 的履历优化框架，将简历结构化建模，并针对目标岗位 JD 进行动态匹配与多版本定制生成。
+一个面向求职场景的本地优先简历工作台。
 
-## 功能
+它不是“让 AI 直接吐一份简历”的一次性工具，而是把你的履历拆成可管理、可复用、可针对岗位重组的结构化资产，再围绕目标 JD 做匹配分析和多版本生成。
 
-- **简历管理** — 以结构化 Item 模型管理技能、工作经历、项目、教育背景、证书；支持拖拽排序、显隐控制
-- **AI 导入** — 上传 PDF / DOCX / TXT 简历，AI 自动解析为结构化数据，支持预览确认与去重检测
-- **JD 匹配分析** — 粘贴职位描述，AI 从五个维度评分（技术匹配、经验匹配、学历匹配、文化适配、成长潜力），生成差距分析与简历策略建议
-- **简历生成** — 选择叙事策略（成果导向 / 技能导向 / 成长轨迹 / 领导力 / 技术深度）、语言和页数，AI 输出 Markdown 格式简历，支持复制与下载
+## 这是什么
 
-## 技术栈
+`darkforest-resume-os` 想解决的是传统简历工作流里的三个低效点：
 
-| 层级 | 技术 |
-| ------ | ------ |
-| 框架 | Next.js 14 App Router · TypeScript strict |
-| UI | Tailwind CSS · shadcn/ui (New York, zinc) · Recharts |
-| 状态 | TanStack Query v5 · nuqs |
-| 数据库 | Drizzle ORM · better-sqlite3 (SQLite) |
-| AI | OpenAI SDK · OpenAI 兼容模型服务（默认模型示例：`kimi-k2.5`） |
-| 表单 | react-hook-form · zod |
-| 拖拽 | @dnd-kit/core · @dnd-kit/sortable |
-| 文件解析 | pdf-parse · mammoth |
+- 履历内容散落在 Word、PDF、招聘网站和聊天记录里，难以复用
+- 面对不同 JD 时，需要反复手改措辞和排序，很难稳定输出
+- AI 能写，但如果没有结构化上下文，往往会写得空泛、失真或不一致
 
-## 快速开始
+这个项目把“简历”拆成一套可计算的职业档案，再让 AI 参与三个关键环节：
 
-### 1 安装依赖
+- 把旧简历解析成结构化档案
+- 把目标 JD 解析成要求画像，并与你的档案做五维匹配
+- 按不同叙事策略生成可直接继续修改的 Markdown 简历
+
+## 当前产品形态
+
+当前版本是一个单用户、本地优先的求职工作台：
+
+- 前端基于 `Next.js 14 App Router`
+- AI 通过网页里的“设置”页配置，不依赖后端私有密钥
+- 实际使用中的档案、JD、匹配结果、生成简历，默认保存在浏览器 `localStorage`
+- 仓库中仍保留 `SQLite + Drizzle` 的后端数据层与 API 路由，主要用于已有实现、兼容过渡和后续扩展
+
+这意味着它很适合个人本地使用、快速验证产品形态，以及继续往“求职操作系统”方向演进。
+
+## 核心能力
+
+### 1. 结构化档案管理
+
+把履历拆成独立条目进行维护，而不是只维护一份整页简历。
+
+- 支持五类条目：技能、工作经历、项目、教育、证书
+- 支持显隐控制、排序调整、手动编辑
+- 支持按条目沉淀成长期可复用的职业素材库
+
+### 2. AI 简历导入
+
+把已有 PDF / DOCX / TXT 简历导入系统，自动解析为结构化数据。
+
+- 支持文件上传和纯文本粘贴
+- 支持解析预览、勾选导入、重复项识别
+- 支持 `merge` / `replace` 两种导入模式
+
+### 3. JD 解析与匹配分析
+
+把职位描述从一段文本，变成可操作的岗位画像。
+
+- 提取岗位、公司、地点、年限、关键词等信息
+- 生成 `must-have` / `nice-to-have` / 隐性要求
+- 基于你的档案输出五维评分：
+  - 技术匹配
+  - 经验匹配
+  - 学历匹配
+  - 文化适配
+  - 成长潜力
+- 输出差距项、证据说明和简历策略建议
+
+### 4. 多策略简历生成
+
+不是只生成“标准版简历”，而是根据目标岗位切换叙事方式。
+
+- 支持五种叙事策略：
+  - 成果导向
+  - 技能导向
+  - 成长轨迹
+  - 领导力
+  - 技术深度
+- 支持中英文输出
+- 支持 1 页 / 2 页长度
+- 输出 Markdown，可直接复制、下载、继续加工
+
+### 5. 跨页面 Agent 任务轨道
+
+AI 动作不是黑盒弹窗，而是可追踪任务。
+
+- JD 解析、简历解析、匹配分析、简历生成都会进入任务轨道
+- 支持跨页面查看进度、成功状态和失败信息
+- 更适合多步骤求职工作流，而不是一次性问答
+
+## 典型使用流程
+
+1. 进入 `设置` 页面，填入模型服务的 `API Key`、`Base URL` 和模型名。
+2. 上传历史简历，或手动录入你的结构化档案。
+3. 在 `我的档案` 页面清理条目、补充细节、隐藏不想展示的内容。
+4. 在 `JD 匹配分析` 页面粘贴目标岗位描述，得到评分、差距项和叙事建议。
+5. 在 `简历生成` 页面选择策略、语言、篇幅，并叠加 JD / 匹配结果上下文。
+6. 导出 Markdown 简历，继续精修或转成最终投递版本。
+
+## 运行方式
+
+### 环境要求
+
+- Node.js `18+`
+- npm
+
+### 1. 安装依赖
 
 ```bash
 npm install
 ```
 
-### 2 配置环境变量（仅数据库）
+### 2. 准备环境变量
 
 ```bash
 cp .env.example .env.local
 ```
 
-编辑 `.env.local`。这个项目现在只需要数据库路径环境变量，且有默认值：
+当前示例环境变量只有数据库路径：
 
 ```env
 DATABASE_URL=./db/resume-agent.db
 ```
 
-如果你不写 `DATABASE_URL`，系统也会默认使用 `./db/resume-agent.db`。
+说明：
 
-### 3 初始化数据库
+- 这个值用于仓库中保留的 `SQLite` 数据层
+- 当前前端主流程默认走浏览器工作区存储，所以新用户即使不立即使用数据库层，也可以先跑起来体验
+- 如果你准备调试保留中的数据库 API / Drizzle schema，建议执行一次 `db:push`
+
+### 3. 可选：同步数据库 schema
 
 ```bash
 npm run db:push
 ```
 
-### 4 启动开发服务器
+### 4. 启动开发环境
 
 ```bash
 npm run dev
@@ -58,67 +137,139 @@ npm run dev
 
 打开 [http://localhost:3000](http://localhost:3000)。
 
-### 5 在网页里填写 AI 设置
+### 5. 在网页里填写 AI 设置
 
-启动后进入网站左下角的“AI 设置”页面，填写以下三项：
+进入 `/settings` 页面后，填写：
 
 - `API Key`
 - `Base URL`
 - `模型名`
 
-这些值只保存在当前浏览器的 localStorage 中，不会读取或写入 `.env` 文件。
-如果你切换浏览器、清空站点数据或使用无痕窗口，需要重新填写。
+这些设置会保存在当前浏览器的 `localStorage`，不会写入 `.env.local`。
+
+常见服务示例：
+
+- Moonshot / Kimi：`https://api.moonshot.cn/v1`
+- OpenAI：`https://api.openai.com/v1`
+- 其他 OpenAI 兼容服务：以服务商文档为准
+
+默认模型常量当前是：
+
+```text
+moonshotai/Kimi-K2.5
+```
+
+实际使用时请替换为你账号可调用的模型。
+
+## 数据存储说明
+
+这是理解当前项目状态最重要的一部分。
+
+### 浏览器工作区
+
+当前主流程数据保存在浏览器侧：
+
+- Profile
+- Items
+- Job Descriptions
+- Match Results
+- Generated Resumes
+- AI 设置
+
+优点：
+
+- 本地启动即可用，不依赖后端账号系统
+- 开发和产品验证成本低
+- 交互反馈快，适合单人求职场景
+
+注意：
+
+- 更换浏览器、使用无痕模式、清理站点数据后，这些内容会丢失
+- 不适合直接当成多设备同步方案
+
+### 保留中的数据库层
+
+仓库中仍有：
+
+- `src/lib/db/schema.ts`
+- `src/lib/db/index.ts`
+- `src/app/api/profile/*`
+- `src/app/api/items/*`
+- `src/app/api/profile/import/confirm`
+
+这部分代表项目早期或过渡中的服务端持久化实现。它对理解数据模型和后续演进仍然有价值，但不是当前前端主流程的唯一事实来源。
 
 ## 项目结构
 
 ```text
 src/
 ├── app/
-│   ├── page.tsx                  # 首页 Dashboard
-│   ├── profile/page.tsx          # 简历管理
+│   ├── page.tsx                  # Dashboard
+│   ├── profile/page.tsx          # 结构化档案管理
 │   ├── match/page.tsx            # JD 匹配分析
 │   ├── generate/page.tsx         # 简历生成
-│   └── api/                      # API 路由
-│       ├── profile/              # 个人信息 + AI 导入
-│       ├── items/                # Item CRUD + 排序 + 显隐
-│       ├── jd/                   # JD 解析
-│       ├── match/                # 匹配分析
-│       └── generate/             # 简历生成
+│   ├── settings/page.tsx         # AI 配置
+│   └── api/                      # AI 调用与保留中的服务端接口
 ├── components/
-│   ├── profile/                  # 简历管理组件
+│   ├── profile/                  # 档案页组件
 │   ├── match/                    # 匹配分析组件
-│   ├── generate/                 # 简历生成组件
-│   └── shared/                   # 公共组件
+│   ├── generate/                 # 生成页组件
+│   ├── agent/                    # Agent 任务系统
+│   └── shared/                   # 通用组件
 └── lib/
     ├── ai/
-    │   ├── agents/               # profile / jd / match / resume-gen agent
-    │   ├── client.ts             # callAgent<T>() 封装
-    │   └── prompts.ts            # 所有 System Prompt
-    ├── db/
-    │   ├── schema.ts             # Drizzle 表结构
-    │   └── index.ts              # DB 单例
+    │   ├── agents/               # profile / jd / match / resume generation agents
+    │   ├── client.ts             # OpenAI 兼容调用封装
+    │   └── prompts.ts            # 系统提示词
+    ├── client/
+    │   ├── ai-settings.ts        # 浏览器端 AI 配置
+    │   └── workspace-storage.ts  # 浏览器工作区存储
+    ├── db/                       # 保留中的 SQLite / Drizzle 数据层
     ├── hooks/                    # React Query hooks
-    └── types/                    # TypeScript 类型定义
+    └── types/                    # 领域模型定义
 ```
+
+## 技术栈
+
+| 层级 | 技术 |
+| --- | --- |
+| 应用框架 | Next.js 14 App Router · React 18 · TypeScript |
+| UI | Tailwind CSS · shadcn/ui · Radix UI · Recharts |
+| 状态管理 | TanStack Query v5 · nuqs |
+| AI 接入 | OpenAI SDK · OpenAI-compatible API |
+| 文件解析 | `pdf-parse` · `mammoth` |
+| 拖拽 | `@dnd-kit` |
+| 数据库 | `better-sqlite3` · Drizzle ORM |
 
 ## 可用脚本
 
 ```bash
-npm run dev        # 开发服务器
-npm run build      # 生产构建
-npm run db:push    # 同步数据库 schema
-npm run db:studio  # Drizzle Studio 可视化数据库
+npm run dev
+npm run build
+npm run start
+npm run lint
+npm run db:push
+npm run db:generate
+npm run db:studio
 ```
 
-## AI 引擎说明
+## 文档入口
 
-项目通过 OpenAI SDK 调用 OpenAI 兼容接口。
-默认前端模型名示例为 `kimi-k2.5`，你也可以在网站“AI 设置”页面改成其他可用模型。
+产品和技术文档都放在 [`docs`](./docs) 目录。
 
-常见配置方式：
+- [产品介绍](./docs/00-产品介绍.md)
+- [系统架构概览](./docs/01-系统架构概览.md)
+- [数据模型与 API 设计](./docs/02-数据模型与API设计.md)
+- [AI 调用链与配置机制](./docs/03-AI调用链与配置机制.md)
+- [前端页面与任务系统](./docs/04-前端页面与任务系统.md)
+- [产品路线图](./docs/05-产品路线图.md)
 
-- Moonshot / Kimi：在控制台创建 API Key，Base URL 常见为 `https://api.moonshot.cn/v1`
-- OpenAI：在 Platform 控制台创建 API Key，Base URL 常见为 `https://api.openai.com/v1`
-- 其他兼容服务：按服务商文档填写 API Key、Base URL 和模型名
+## 适合谁
 
-注意：AI 相关配置已经全部迁移到网页前端设置页，`.env.local` 不再存放 `API Key`、`Base URL` 或模型名。
+这个项目比较适合：
+
+- 想把“简历生成器”做成“求职操作系统”的产品团队
+- 想验证本地优先、AI 增强型简历工作流的独立开发者
+- 想在现有代码基础上继续扩展投递追踪、面试准备、数据导出能力的人
+
+如果你要的是一个立即可商用的 SaaS 多租户后台，这个仓库还没有走到那一步；但如果你要的是一个已经具备清晰产品骨架的原型，它已经足够具体。
