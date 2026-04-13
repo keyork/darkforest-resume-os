@@ -6,10 +6,10 @@ import { eq } from 'drizzle-orm';
 
 export async function PUT(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse> {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const rows = await db.select().from(items).where(eq(items.id, id));
 
