@@ -28,15 +28,15 @@ export function ThemeToggle({ compact = false, className }: ThemeToggleProps) {
       variant="outline"
       size={compact ? 'icon' : 'sm'}
       className={cn(
-        'group rounded-full border-border/70 bg-background/50 text-foreground shadow-[0_14px_38px_hsl(var(--shadow-color)/0.14)] backdrop-blur-xl hover:border-primary/40 hover:bg-background/75',
+        'group rounded-full border-border/70 bg-[linear-gradient(180deg,hsl(var(--card)/0.76),hsl(var(--surface-soft)/0.52))] text-foreground shadow-[0_18px_44px_hsl(var(--shadow-color)/0.22)] backdrop-blur-xl hover:border-primary/34 hover:bg-[linear-gradient(180deg,hsl(var(--card)/0.86),hsl(var(--surface-soft)/0.62))]',
         compact ? 'h-10 w-10' : 'h-10 gap-2.5 px-3.5',
         className
       )}
       onClick={() => setTheme(isDark ? 'light' : 'dark')}
       aria-label={`切换到${isDark ? '日间' : '夜间'}模式`}
       title={`切换到${isDark ? '日间' : '夜间'}模式`}
-    >
-      <span className="relative flex h-5 w-5 items-center justify-center overflow-hidden rounded-full">
+      >
+      <span className="relative flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-[radial-gradient(circle,hsl(var(--foreground)/0.12)_0%,transparent_72%)]">
         <SunMedium
           className={cn(
             'absolute h-4 w-4 text-[hsl(var(--signal-solar))] transition-all duration-300',
