@@ -12,7 +12,7 @@ interface FileUploadProps {
   disabled?: boolean;
 }
 
-const DEFAULT_ACCEPT = '.pdf,.docx,.doc,.txt';
+const DEFAULT_ACCEPT = '.pdf,.docx,.txt';
 
 export function FileUpload({
   onFile,

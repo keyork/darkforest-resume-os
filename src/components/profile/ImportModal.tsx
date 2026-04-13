@@ -470,8 +470,11 @@ async function extractFileText(file: File, signal: AbortSignal): Promise<string>
   });
 
   if (!response.ok) {
-    const body = await response.text().catch(() => response.statusText);
-    throw new Error(body || '文件解析失败');
+    const body = await response.json().catch(async () => ({
+      error: await response.text().catch(() => response.statusText),
+    }));
+
+    throw new Error(body.details || body.error || '文件解析失败');
   }
 
   const data = (await response.json()) as { rawText?: string; error?: string };

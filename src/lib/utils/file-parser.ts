@@ -1,9 +1,11 @@
+import { createRequire } from 'node:module';
 import mammoth from 'mammoth';
+
+const require = createRequire(import.meta.url);
 
 export type SupportedMimeType =
   | 'application/pdf'
   | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  | 'application/msword'
   | 'text/plain';
 
 export async function parseFileToText(
@@ -13,20 +15,29 @@ export async function parseFileToText(
   const mime = mimeType.toLowerCase();
 
   if (mime === 'application/pdf') {
-    // Dynamic import to avoid SSR issues with pdf-parse (ESM package)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfParseModule = await import('pdf-parse') as any;
-    const pdfParse = pdfParseModule.default ?? pdfParseModule;
-    const result = await pdfParse(buffer);
-    return result.text ?? '';
+    const { PDFParse } = require('pdf-parse') as {
+      PDFParse: new (options: { data: Buffer }) => {
+        getText: () => Promise<{ text?: string }>;
+        destroy: () => Promise<void>;
+      };
+    };
+    const parser = new PDFParse({ data: buffer });
+
+    try {
+      const result = await parser.getText();
+      return result.text ?? '';
+    } finally {
+      await parser.destroy();
+    }
   }
 
-  if (
-    mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-    mime === 'application/msword'
-  ) {
+  if (mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
     const result = await mammoth.extractRawText({ buffer });
     return result.value ?? '';
+  }
+
+  if (mime === 'application/msword') {
+    throw new Error('Legacy .doc files are not supported. Please convert the file to .docx, .pdf, or .txt first.');
   }
 
   if (mime === 'text/plain' || mime.startsWith('text/')) {
