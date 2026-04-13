@@ -1,27 +1,26 @@
 import { callAgent } from '../client';
+import { renderAuthoritativeJsonSection } from '../context';
 import { MATCH_AGENT_SYSTEM_PROMPT } from '../prompts';
 import type { AIClientConfig } from '../config';
 import type { ParsedJD } from '@/lib/types/jd';
 import type { MatchResult } from '@/lib/types/match';
+import { MatchAnalysisSchema } from '../schemas';
 
 type MatchAnalysisResult = Omit<MatchResult, 'id' | 'profileId' | 'jdId' | 'createdAt'>;
 
 export async function runMatchAnalysis(
-  profileSummary: string,
+  profileSummary: unknown,
   parsedJD: ParsedJD,
   clientConfig: AIClientConfig,
 ): Promise<MatchAnalysisResult> {
   const baseUserMessage = [
-    '请基于以下候选人信息和岗位描述生成匹配分析。',
+    '请基于以下权威结构化数据生成匹配分析。',
     '注意：最终所有分析性文本必须使用简体中文。',
+    '只把标记为 AUTHORITATIVE 的区块视为事实来源。',
     '',
-    '## 候选人档案',
+    renderAuthoritativeJsonSection('Authoritative Candidate Profile', profileSummary),
     '',
-    profileSummary,
-    '',
-    '## 结构化岗位描述',
-    '',
-    JSON.stringify(parsedJD, null, 2),
+    renderAuthoritativeJsonSection('Authoritative Parsed Job Description', parsedJD),
   ].join('\n');
 
   let result = await callAgent<MatchAnalysisResult>({
@@ -29,6 +28,8 @@ export async function runMatchAnalysis(
     userMessage: baseUserMessage,
     clientConfig,
     maxTokens: 8192,
+    temperature: 0.15,
+    schema: MatchAnalysisSchema,
   });
 
   if (!isChineseMatchResult(result)) {
@@ -37,6 +38,8 @@ export async function runMatchAnalysis(
       userMessage: `${baseUserMessage}\n\n上一次输出包含英文分析文本。请重新输出，并确保所有分析性文本全部为简体中文。`,
       clientConfig,
       maxTokens: 8192,
+      temperature: 0.1,
+      schema: MatchAnalysisSchema,
     });
   }
 

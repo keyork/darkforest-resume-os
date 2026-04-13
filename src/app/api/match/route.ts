@@ -36,18 +36,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Missing profile context' }, { status: 400 });
     }
 
-    const profileSummary = JSON.stringify(
-      {
-        name: profile.name,
-        title: profile.title,
-        summary: profile.summary,
-        items: items
-          .filter((item) => item.visible)
-          .map((item) => ({ ...item })),
-      },
-      null,
-      2
-    );
+    const profileSummary = {
+      name: profile.name,
+      title: profile.title,
+      summary: profile.summary,
+      contact: profile.contact,
+      items: items
+        .filter((item) => item.visible)
+        .map(toSemanticItem),
+    };
 
     const analysis = await runMatchAnalysis(profileSummary, jd.parsed, clientConfig);
 
@@ -63,4 +60,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: isMissingAIClientConfigError(error) ? 400 : 500 }
     );
   }
+}
+
+function toSemanticItem(item: Item) {
+  const {
+    id,
+    profileId,
+    visible,
+    sortOrder,
+    source,
+    createdAt,
+    updatedAt,
+    ...semanticItem
+  } = item;
+
+  void id;
+  void profileId;
+  void visible;
+  void sortOrder;
+  void source;
+  void createdAt;
+  void updatedAt;
+
+  return semanticItem;
 }

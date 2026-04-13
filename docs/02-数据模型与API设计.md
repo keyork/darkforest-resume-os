@@ -4,6 +4,12 @@
 
 项目使用 SQLite，schema 定义在 `src/lib/db/schema.ts`。
 
+但需要注意：
+
+- 这些 schema 仍然描述仓库里的服务端数据模型
+- 当前前端主流程已经迁到浏览器工作区存储
+- 因此这份文档更适合理解“保留中的后端模型与 route 设计”，而不是当前唯一的数据事实来源
+
 当前包含 5 张核心表：
 
 - `profiles`
@@ -230,7 +236,12 @@
 
 - 从请求头获取 AI 配置
 - 调用 JD 解析 Agent
-- 把原始 JD 与解析结果一起入库
+- 返回原始 JD 与解析结果
+
+当前前端主流程里：
+
+- 解析结果默认由客户端写入浏览器工作区
+- 不再要求服务端先持久化后再读取
 
 ### 7.3 `GET /api/jd/[id]`
 
@@ -244,59 +255,75 @@
 
 ### 8.1 `GET /api/match`
 
-返回匹配结果列表摘要。
+当前返回 `405`。
 
-只返回列表页需要的轻量字段：
+原因：
 
-- `id`
-- `overallScore`
-- `summary`
-- `createdAt`
+- 匹配历史主流程已切换到浏览器工作区
+- 列表读取由客户端直接从本地工作区完成
 
 ### 8.2 `POST /api/match`
 
 职责：
 
-1. 从请求体拿 `jdId`
-2. 读取已解析 JD
-3. 读取默认档案下所有可见 Item
-4. 拼接候选人概要
+1. 从请求体读取 `profile`、`items`、`jd`
+2. 校验是否存在已解析 JD
+3. 过滤可见 Item
+4. 去掉与语义分析无关的元字段
 5. 调用匹配 Agent
-6. 将分析结果写入 `match_results`
+6. 返回分析结果
+
+当前前端主流程里：
+
+- route 只负责推理
+- 匹配结果由客户端写入浏览器工作区
 
 ### 8.3 `GET /api/match/[id]`
 
-读取完整匹配结果。
+这是保留中的后端详情接口，对应数据库 `match_results`。
+
+当前前端主流程默认不依赖它读取列表或详情。
 
 ### 8.4 `DELETE /api/match/[id]`
 
-删除匹配结果。
+这是保留中的后端删除接口。
 
 ## 9. Generate API
 
 ### 9.1 `GET /api/generate`
 
-返回生成历史列表，不包含完整 Markdown 内容。
+当前返回 `405`。
+
+原因：
+
+- 生成历史主流程已切换到浏览器工作区
+- 列表读取由客户端直接从本地工作区完成
 
 ### 9.2 `POST /api/generate`
 
 职责：
 
 1. 校验策略参数
-2. 读取默认档案的可见 Item
-3. 读取档案元信息
-4. 按需读取 JD
-5. 按需读取 Match Result
+2. 从请求体接收 profile、visible items、可选 JD、可选 Match Result
+3. 构造权威事实输入
+4. 先做 resume plan
+5. 再生成草稿
+6. 再做 review，必要时 revise 一轮
 6. 调用简历生成 Agent
-7. 存储生成结果
+7. 返回 Markdown 内容
+
+当前前端主流程里：
+
+- route 不负责保存生成记录
+- 生成结果由客户端写入浏览器工作区
 
 ### 9.3 `GET /api/generate/[id]`
 
-读取单条生成结果，包括完整 Markdown。
+这是保留中的后端详情接口，对应数据库 `generated_resumes`。
 
 ### 9.4 `DELETE /api/generate/[id]`
 
-删除生成记录。
+这是保留中的后端删除接口。
 
 ## 10. Profile Import API
 
@@ -341,6 +368,6 @@
 
 - 没有鉴权与用户隔离
 - 没有分页
-- 没有严格 schema validation 中间层
-- 多数 JSON 解析依赖 TypeScript 类型约束而不是运行时校验
+- AI route 已经补上运行时 schema validation，但普通 CRUD route 仍然以参数检查和 TypeScript 约束为主
+- 保留中的后端 route 与当前前端主流程并不完全一致，需要结合工作区存储理解
 - 目前适合单机、单用户、本地使用场景

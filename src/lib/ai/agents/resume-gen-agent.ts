@@ -1,5 +1,10 @@
 import { callAgent, callAgentText } from '../client';
 import {
+  renderAuthoritativeJsonSection,
+  renderReferenceJsonSection,
+  renderReferenceTextSection,
+} from '../context';
+import {
   RESUME_GEN_SYSTEM_PROMPT,
   RESUME_PLAN_SYSTEM_PROMPT,
   RESUME_REVIEW_SYSTEM_PROMPT,
@@ -9,6 +14,10 @@ import type { GenerationStrategy } from '@/lib/types/resume';
 import type { Item } from '@/lib/types/item';
 import type { ParsedJD } from '@/lib/types/jd';
 import type { MatchResult } from '@/lib/types/match';
+import {
+  ResumeGenerationPlanSchema,
+  ResumeGenerationReviewSchema,
+} from '../schemas';
 
 export interface ResumeGenInput {
   profileName: string;
@@ -41,111 +50,6 @@ interface ResumeGenerationReview {
 
 const MAX_REVIEW_REVISIONS = 1;
 
-function serializeItems(items: Item[]): string {
-  const sections: string[] = [];
-
-  const byType = {
-    experience: items.filter((i) => i.type === 'experience'),
-    project: items.filter((i) => i.type === 'project'),
-    skill: items.filter((i) => i.type === 'skill'),
-    education: items.filter((i) => i.type === 'education'),
-    certification: items.filter((i) => i.type === 'certification'),
-  };
-
-  if (byType.experience.length > 0) {
-    sections.push('### Work Experience');
-    for (const item of byType.experience) {
-      if (item.type !== 'experience') continue;
-      const end = item.isCurrent ? 'Present' : (item.endDate ?? '');
-      sections.push(`**${item.title}** at ${item.company} (${item.startDate} – ${end})`);
-      if (item.location) sections.push(`Location: ${item.location}`);
-      sections.push(item.description);
-      if (item.achievements.length > 0) {
-        sections.push('Achievements:');
-        for (const ach of item.achievements) {
-          const metric = ach.metrics
-            ? ` [${ach.metrics.type}: ${ach.metrics.value}${ach.metrics.unit}${ach.metrics.context ? `, ${ach.metrics.context}` : ''}]`
-            : '';
-          sections.push(`- ${ach.description}${metric}`);
-        }
-      }
-      if (item.industryTags.length > 0) {
-        sections.push(`Industry: ${item.industryTags.join(', ')}`);
-      }
-      sections.push('');
-    }
-  }
-
-  if (byType.project.length > 0) {
-    sections.push('### Projects');
-    for (const item of byType.project) {
-      if (item.type !== 'project') continue;
-      const dateRange =
-        item.startDate || item.endDate
-          ? ` (${item.startDate ?? ''} – ${item.endDate ?? 'Present'})`
-          : '';
-      sections.push(`**${item.name}** — ${item.role}${dateRange}`);
-      if (item.url) sections.push(`URL: ${item.url}`);
-      sections.push(item.description);
-      if (item.techStack.length > 0) {
-        sections.push(`Tech Stack: ${item.techStack.join(', ')}`);
-      }
-      if (item.achievements.length > 0) {
-        sections.push('Achievements:');
-        for (const ach of item.achievements) {
-          const metric = ach.metrics
-            ? ` [${ach.metrics.type}: ${ach.metrics.value}${ach.metrics.unit}${ach.metrics.context ? `, ${ach.metrics.context}` : ''}]`
-            : '';
-          sections.push(`- ${ach.description}${metric}`);
-        }
-      }
-      sections.push('');
-    }
-  }
-
-  if (byType.skill.length > 0) {
-    sections.push('### Skills');
-    for (const item of byType.skill) {
-      if (item.type !== 'skill') continue;
-      const details: string[] = [`level=${item.level}/5`, `category=${item.category}`];
-      if (item.yearsOfExperience != null) details.push(`${item.yearsOfExperience}yrs`);
-      if (item.lastUsed) details.push(`lastUsed=${item.lastUsed}`);
-      sections.push(`- ${item.name} (${details.join(', ')})`);
-      if (item.keywords.length > 0) {
-        sections.push(`  Keywords: ${item.keywords.join(', ')}`);
-      }
-    }
-    sections.push('');
-  }
-
-  if (byType.education.length > 0) {
-    sections.push('### Education');
-    for (const item of byType.education) {
-      if (item.type !== 'education') continue;
-      const end = item.endDate ?? 'Present';
-      sections.push(`**${item.degree}** in ${item.major}, ${item.school} (${item.startDate} – ${end})`);
-      if (item.gpa) sections.push(`GPA: ${item.gpa}`);
-      if (item.highlights.length > 0) {
-        for (const h of item.highlights) sections.push(`- ${h}`);
-      }
-      sections.push('');
-    }
-  }
-
-  if (byType.certification.length > 0) {
-    sections.push('### Certifications');
-    for (const item of byType.certification) {
-      if (item.type !== 'certification') continue;
-      const expiry = item.expiryDate ? ` (expires ${item.expiryDate})` : '';
-      sections.push(`- **${item.name}** — ${item.issuer}, issued ${item.issueDate}${expiry}`);
-      if (item.credentialId) sections.push(`  Credential ID: ${item.credentialId}`);
-    }
-    sections.push('');
-  }
-
-  return sections.join('\n');
-}
-
 export async function generateResumeMarkdown(
   input: ResumeGenInput,
   clientConfig: AIClientConfig,
@@ -177,6 +81,8 @@ export async function generateResumeMarkdown(
     userMessage: baseContext,
     clientConfig,
     maxTokens: 4096,
+    temperature: 0.2,
+    schema: ResumeGenerationPlanSchema,
   });
 
   let markdown = await callAgentText({
@@ -184,12 +90,11 @@ export async function generateResumeMarkdown(
     userMessage: [
       baseContext,
       '',
-      '## Approved Resume Plan',
-      '',
-      formatResumePlan(plan),
+      renderReferenceJsonSection('Derived Resume Plan', formatResumePlan(plan)),
     ].join('\n'),
     clientConfig,
     maxTokens: 8192,
+    temperature: 0.65,
   });
 
   for (let revision = 0; revision <= MAX_REVIEW_REVISIONS; revision += 1) {
@@ -198,16 +103,14 @@ export async function generateResumeMarkdown(
       userMessage: [
         baseContext,
         '',
-        '## Approved Resume Plan',
+        renderReferenceJsonSection('Derived Resume Plan', formatResumePlan(plan)),
         '',
-        formatResumePlan(plan),
-        '',
-        '## Draft Resume Markdown',
-        '',
-        markdown,
+        renderReferenceTextSection('Draft Resume Markdown', 'DRAFT_RESUME_MARKDOWN', markdown),
       ].join('\n'),
       clientConfig,
       maxTokens: 4096,
+      temperature: 0,
+      schema: ResumeGenerationReviewSchema,
     });
 
     if (review.passed || revision === MAX_REVIEW_REVISIONS) {
@@ -219,22 +122,19 @@ export async function generateResumeMarkdown(
       userMessage: [
         baseContext,
         '',
-        '## Approved Resume Plan',
+        renderReferenceJsonSection('Derived Resume Plan', formatResumePlan(plan)),
         '',
-        formatResumePlan(plan),
+        renderReferenceTextSection('Previous Draft', 'PREVIOUS_DRAFT', markdown),
         '',
-        '## Previous Draft',
+        renderReferenceJsonSection('Review Feedback', formatResumeReview(review)),
         '',
-        markdown,
-        '',
-        '## Review Feedback',
-        '',
-        formatResumeReview(review),
-        '',
-        'Please revise the previous draft according to the review feedback while preserving accurate facts and Markdown structure.',
+        'Revise the previous draft according to the review feedback.',
+        'Keep only claims supported by authoritative facts.',
+        'If a claim in the previous draft is unsupported, remove or rewrite it.',
       ].join('\n'),
       clientConfig,
       maxTokens: 8192,
+      temperature: 0.45,
     });
   }
 
@@ -253,81 +153,112 @@ function buildResumeGenerationContext(input: ResumeGenInput): string {
     matchResult,
   } = input;
 
-  const contactLines = Object.entries(profileContact)
-    .filter(([, v]) => v != null && v !== '')
-    .map(([k, v]) => `${k}: ${v}`)
-    .join(' | ');
+  const authoritativeFacts = {
+    profile: {
+      name: profileName,
+      title: profileTitle,
+      summary: profileSummary,
+      contact: Object.fromEntries(
+        Object.entries(profileContact).filter(([, value]) => Boolean(value))
+      ),
+    },
+    generationStrategy: {
+      narrative: strategy.narrative,
+      language: strategy.language,
+      length: strategy.length,
+    },
+    visibleItems: groupVisibleItemsForModel(visibleItems),
+    targetJobDescription: parsedJD ?? null,
+    matchAnalysisStrategy: matchResult?.resumeStrategy ?? null,
+  };
 
-  const messageParts: string[] = [
-    '## Profile',
-    `Name: ${profileName}`,
-    `Title: ${profileTitle}`,
-    contactLines ? `Contact: ${contactLines}` : '',
+  return [
+    'Use only the AUTHORITATIVE_JSON block below as the factual source for resume content.',
+    'Any later plan, review, or prior draft blocks are non-authoritative and may guide revision only.',
     '',
-    `Summary: ${profileSummary}`,
-    '',
-    '## Generation Strategy',
-    `Narrative: ${strategy.narrative}`,
-    `Language: ${strategy.language === 'zh' ? 'Chinese (中文)' : 'English'}`,
-    `Length: ${strategy.length}`,
-    '',
-    '## Resume Items (visible=true only)',
-    '',
-    serializeItems(visibleItems),
-  ];
-
-  if (parsedJD) {
-    messageParts.push(
-      '## Target Job Description (parsed)',
-      '',
-      JSON.stringify(parsedJD, null, 2),
-      '',
-    );
-  }
-
-  if (matchResult?.resumeStrategy) {
-    const rs = matchResult.resumeStrategy;
-    messageParts.push(
-      '## Resume Strategy from Match Analysis',
-      '',
-      `Narrative thread: ${rs.narrative}`,
-      '',
-      `Items to emphasize: ${rs.emphasize.join(', ')}`,
-      '',
-      `Items to deemphasize: ${rs.deemphasize.join(', ')}`,
-      '',
-    );
-  }
-
-  return messageParts.filter((line) => line !== undefined).join('\n');
+    renderAuthoritativeJsonSection('Authoritative Resume Facts', authoritativeFacts),
+  ].join('\n');
 }
 
-function formatResumePlan(plan: ResumeGenerationPlan): string {
-  return JSON.stringify(
-    {
-      targetHeadline: plan.targetHeadline ?? '',
-      narrativeFocus: plan.narrativeFocus ?? '',
-      sectionOrder: plan.sectionOrder ?? [],
-      mustEmphasize: plan.mustEmphasize ?? [],
-      shouldDeemphasize: plan.shouldDeemphasize ?? [],
-      keywordTargets: plan.keywordTargets ?? [],
-      writingGuidelines: plan.writingGuidelines ?? [],
-      riskChecks: plan.riskChecks ?? [],
-    },
-    null,
-    2,
-  );
+function formatResumePlan(plan: ResumeGenerationPlan) {
+  return {
+    targetHeadline: plan.targetHeadline ?? '',
+    narrativeFocus: plan.narrativeFocus ?? '',
+    sectionOrder: plan.sectionOrder ?? [],
+    mustEmphasize: plan.mustEmphasize ?? [],
+    shouldDeemphasize: plan.shouldDeemphasize ?? [],
+    keywordTargets: plan.keywordTargets ?? [],
+    writingGuidelines: plan.writingGuidelines ?? [],
+    riskChecks: plan.riskChecks ?? [],
+  };
 }
 
-function formatResumeReview(review: ResumeGenerationReview): string {
-  return JSON.stringify(
-    {
-      passed: Boolean(review.passed),
-      strengths: review.strengths ?? [],
-      issues: review.issues ?? [],
-      revisionInstructions: review.revisionInstructions ?? [],
-    },
-    null,
-    2,
-  );
+function formatResumeReview(review: ResumeGenerationReview) {
+  return {
+    passed: Boolean(review.passed),
+    strengths: review.strengths ?? [],
+    issues: review.issues ?? [],
+    revisionInstructions: review.revisionInstructions ?? [],
+  };
+}
+
+function groupVisibleItemsForModel(items: Item[]) {
+  return {
+    experiences: items
+      .filter((item) => item.type === 'experience')
+      .map((item) => ({
+        company: item.company,
+        title: item.title,
+        startDate: item.startDate,
+        endDate: item.endDate ?? null,
+        isCurrent: item.isCurrent,
+        location: item.location ?? null,
+        description: item.description,
+        achievements: item.achievements,
+        industryTags: item.industryTags,
+      })),
+    projects: items
+      .filter((item) => item.type === 'project')
+      .map((item) => ({
+        name: item.name,
+        role: item.role,
+        description: item.description,
+        techStack: item.techStack,
+        achievements: item.achievements,
+        url: item.url ?? null,
+        startDate: item.startDate ?? null,
+        endDate: item.endDate ?? null,
+      })),
+    skills: items
+      .filter((item) => item.type === 'skill')
+      .map((item) => ({
+        name: item.name,
+        category: item.category,
+        level: item.level,
+        yearsOfExperience: item.yearsOfExperience ?? null,
+        lastUsed: item.lastUsed ?? null,
+        keywords: item.keywords,
+        notes: item.notes ?? null,
+      })),
+    educations: items
+      .filter((item) => item.type === 'education')
+      .map((item) => ({
+        school: item.school,
+        degree: item.degree,
+        major: item.major,
+        startDate: item.startDate,
+        endDate: item.endDate ?? null,
+        gpa: item.gpa ?? null,
+        highlights: item.highlights,
+      })),
+    certifications: items
+      .filter((item) => item.type === 'certification')
+      .map((item) => ({
+        name: item.name,
+        issuer: item.issuer,
+        issueDate: item.issueDate,
+        expiryDate: item.expiryDate ?? null,
+        credentialId: item.credentialId ?? null,
+      })),
+  };
 }

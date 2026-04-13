@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import type { ZodType } from 'zod';
 import type { AIClientConfig } from './config';
 
 declare global {
@@ -30,6 +31,8 @@ export interface CallAgentOptions {
   clientConfig: AIClientConfig;
   model?: string;
   maxTokens?: number;
+  temperature?: number;
+  schema?: ZodType<unknown>;
 }
 
 const DEFAULT_MODEL = 'moonshotai/Kimi-K2.5';
@@ -42,6 +45,8 @@ export async function callAgent<T>(options: CallAgentOptions): Promise<T> {
     clientConfig,
     model = clientConfig.model ?? DEFAULT_MODEL,
     maxTokens = 8192,
+    temperature = 0.2,
+    schema,
   } = options;
 
   const client = getOpenAI(clientConfig);
@@ -51,7 +56,7 @@ export async function callAgent<T>(options: CallAgentOptions): Promise<T> {
     const response = await client.chat.completions.create({
       model,
       max_tokens: maxTokens,
-      temperature: 1,
+      temperature,
       // NOTE: do NOT pass response_format — Kimi API doesn't support it and
       // returns empty content when the parameter is present. JSON output is
       // enforced via the system prompt instead.
@@ -75,10 +80,11 @@ export async function callAgent<T>(options: CallAgentOptions): Promise<T> {
     const jsonText = extractJson(content);
 
     try {
-      return JSON.parse(jsonText) as T;
-    } catch {
+      const parsed = JSON.parse(jsonText) as unknown;
+      return (schema ? schema.parse(parsed) : parsed) as T;
+    } catch (error) {
       lastError = new Error(
-        `Failed to parse AI JSON response (finish_reason: ${finishReason}, model: ${model}, attempt: ${attempt}): ${jsonText.slice(0, 300)}`
+        `Failed to parse/validate AI JSON response (finish_reason: ${finishReason}, model: ${model}, attempt: ${attempt}): ${jsonText.slice(0, 300)}${error instanceof Error ? ` :: ${error.message}` : ''}`
       );
 
       if (!shouldRetryJsonParse(jsonText, finishReason) || attempt === MAX_JSON_RETRIES) {
@@ -97,6 +103,7 @@ export async function callAgentText(options: CallAgentOptions): Promise<string> 
     clientConfig,
     model = clientConfig.model ?? DEFAULT_MODEL,
     maxTokens = 8192,
+    temperature = 0.6,
   } = options;
 
   const client = getOpenAI(clientConfig);
@@ -104,7 +111,7 @@ export async function callAgentText(options: CallAgentOptions): Promise<string> 
   const response = await client.chat.completions.create({
     model,
     max_tokens: maxTokens,
-    temperature: 1,
+    temperature,
     messages: [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userMessage },
