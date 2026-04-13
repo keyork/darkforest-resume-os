@@ -9,7 +9,7 @@ out/
 build/
 
 # database
-db/
+/db/
 
 # env files
 .env
