@@ -23,9 +23,8 @@
 当前版本是一个单用户、本地优先的求职工作台：
 
 - 前端基于 `Next.js 14 App Router`
-- AI 通过网页里的“设置”页配置，不依赖后端私有密钥
+- AI 通过网页里的“设置”页配置，由浏览器直接请求 OpenAI 兼容接口
 - 实际使用中的档案、JD、匹配结果、生成简历，默认保存在浏览器 `localStorage`
-- 仓库中仍保留 `SQLite + Drizzle` 的后端数据层与 API 路由，主要用于已有实现、兼容过渡和后续扩展
 
 这意味着它很适合个人本地使用、快速验证产品形态，以及继续往“求职操作系统”方向演进。
 
@@ -111,25 +110,9 @@ npm install
 cp .env.example .env.local
 ```
 
-当前示例环境变量只有数据库路径：
+当前版本没有必填环境变量。
 
-```env
-DATABASE_URL=./db/resume-agent.db
-```
-
-说明：
-
-- 这个值用于仓库中保留的 `SQLite` 数据层
-- 当前前端主流程默认走浏览器工作区存储，所以新用户即使不立即使用数据库层，也可以先跑起来体验
-- 如果你准备调试保留中的数据库 API / Drizzle schema，建议执行一次 `db:push`
-
-### 3. 可选：同步数据库 schema
-
-```bash
-npm run db:push
-```
-
-### 4. 启动开发环境
+### 3. 启动开发环境
 
 ```bash
 npm run dev
@@ -137,7 +120,7 @@ npm run dev
 
 打开 [http://localhost:3000](http://localhost:3000)。
 
-### 5. 在网页里填写 AI 设置
+### 4. 在网页里填写 AI 设置
 
 进入 `/settings` 页面后，填写：
 
@@ -165,9 +148,7 @@ moonshotai/Kimi-K2.5
 
 这是理解当前项目状态最重要的一部分。
 
-### 浏览器工作区
-
-当前主流程数据保存在浏览器侧：
+当前主流程数据保存在浏览器侧 `localStorage`：
 
 - Profile
 - Items
@@ -187,18 +168,6 @@ moonshotai/Kimi-K2.5
 - 更换浏览器、使用无痕模式、清理站点数据后，这些内容会丢失
 - 不适合直接当成多设备同步方案
 
-### 保留中的数据库层
-
-仓库中仍有：
-
-- `src/lib/db/schema.ts`
-- `src/lib/db/index.ts`
-- `src/app/api/profile/*`
-- `src/app/api/items/*`
-- `src/app/api/profile/import/confirm`
-
-这部分代表项目早期或过渡中的服务端持久化实现。它对理解数据模型和后续演进仍然有价值，但不是当前前端主流程的唯一事实来源。
-
 ## 项目结构
 
 ```text
@@ -209,7 +178,7 @@ src/
 │   ├── match/page.tsx            # JD 匹配分析
 │   ├── generate/page.tsx         # 简历生成
 │   ├── settings/page.tsx         # AI 配置
-│   └── api/                      # AI 调用与保留中的服务端接口
+│   └── api/                      # 文件转文本等最小服务端能力
 ├── components/
 │   ├── profile/                  # 档案页组件
 │   ├── match/                    # 匹配分析组件
@@ -219,12 +188,11 @@ src/
 └── lib/
     ├── ai/
     │   ├── agents/               # profile / jd / match / resume generation agents
-    │   ├── client.ts             # OpenAI 兼容调用封装
+    │   ├── client.ts             # 浏览器直连 OpenAI-compatible API 调用封装
     │   └── prompts.ts            # 系统提示词
     ├── client/
     │   ├── ai-settings.ts        # 浏览器端 AI 配置
     │   └── workspace-storage.ts  # 浏览器工作区存储
-    ├── db/                       # 保留中的 SQLite / Drizzle 数据层
     ├── hooks/                    # React Query hooks
     └── types/                    # 领域模型定义
 ```
@@ -236,10 +204,9 @@ src/
 | 应用框架 | Next.js 14 App Router · React 18 · TypeScript |
 | UI | Tailwind CSS · shadcn/ui · Radix UI · Recharts |
 | 状态管理 | TanStack Query v5 · nuqs |
-| AI 接入 | OpenAI SDK · OpenAI-compatible API |
+| AI 接入 | 浏览器直连 OpenAI-compatible API |
 | 文件解析 | `pdf-parse` · `mammoth` |
 | 拖拽 | `@dnd-kit` |
-| 数据库 | `better-sqlite3` · Drizzle ORM |
 
 ## 可用脚本
 
@@ -248,9 +215,6 @@ npm run dev
 npm run build
 npm run start
 npm run lint
-npm run db:push
-npm run db:generate
-npm run db:studio
 ```
 
 ## 文档入口

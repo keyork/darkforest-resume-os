@@ -53,6 +53,7 @@ const MAX_REVIEW_REVISIONS = 1;
 export async function generateResumeMarkdown(
   input: ResumeGenInput,
   clientConfig: AIClientConfig,
+  signal?: AbortSignal,
 ): Promise<string> {
   const {
     profileName,
@@ -83,6 +84,7 @@ export async function generateResumeMarkdown(
     maxTokens: 4096,
     temperature: 0.2,
     schema: ResumeGenerationPlanSchema,
+    signal,
   });
 
   let markdown = await callAgentText({
@@ -95,6 +97,7 @@ export async function generateResumeMarkdown(
     clientConfig,
     maxTokens: 8192,
     temperature: 0.65,
+    signal,
   });
 
   for (let revision = 0; revision <= MAX_REVIEW_REVISIONS; revision += 1) {
@@ -111,6 +114,7 @@ export async function generateResumeMarkdown(
       maxTokens: 4096,
       temperature: 0,
       schema: ResumeGenerationReviewSchema,
+      signal,
     });
 
     if (review.passed || revision === MAX_REVIEW_REVISIONS) {
@@ -135,6 +139,7 @@ export async function generateResumeMarkdown(
       clientConfig,
       maxTokens: 8192,
       temperature: 0.45,
+      signal,
     });
   }
 

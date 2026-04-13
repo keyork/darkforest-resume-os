@@ -1,8 +1,9 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { runMatchAnalysis } from '@/lib/ai/agents/match-agent';
 import { useAgentTasks } from '@/components/agent/AgentTaskProvider';
-import { fetchJson } from '@/lib/client/fetch-json';
+import { getStoredAIClientConfig } from '@/lib/client/ai-settings';
 import {
   createMatchResult as createStoredMatchResult,
   deleteMatchResult as deleteStoredMatchResult,
@@ -13,7 +14,7 @@ import {
   listItems,
   listMatchResults,
 } from '@/lib/client/workspace-storage';
-import type { MatchResult } from '@/lib/types/match';
+import type { Item } from '@/lib/types/item';
 
 export const matchKeys = {
   all: ['match'] as const,
@@ -85,17 +86,18 @@ export function useRunMatch() {
             throw new Error('请先选择一份已解析的 JD');
           }
 
-          const { analysis } = await fetchJson<{
-            analysis: Omit<MatchResult, 'id' | 'profileId' | 'jdId' | 'createdAt'>;
-          }>('/api/match', {
-            method: 'POST',
-            body: JSON.stringify({
-              jd,
-              profile,
-              items: visibleItems,
-            }),
+          const analysis = await runMatchAnalysis(
+            {
+              name: profile.name,
+              title: profile.title,
+              summary: profile.summary,
+              contact: profile.contact,
+              items: visibleItems.map(toSemanticItem),
+            },
+            jd.parsed,
+            getStoredAIClientConfig(),
             signal,
-          });
+          );
 
           return createStoredMatchResult(analysis, jdId);
         }
@@ -105,6 +107,29 @@ export function useRunMatch() {
       queryClient.invalidateQueries({ queryKey: matchKeys.detail(result.id) });
     },
   });
+}
+
+function toSemanticItem(item: Item) {
+  const {
+    id,
+    profileId,
+    visible,
+    sortOrder,
+    source,
+    createdAt,
+    updatedAt,
+    ...semanticItem
+  } = item;
+
+  void id;
+  void profileId;
+  void visible;
+  void sortOrder;
+  void source;
+  void createdAt;
+  void updatedAt;
+
+  return semanticItem;
 }
 
 export function useDeleteMatch() {

@@ -3,14 +3,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAgentTasks } from '@/components/agent/AgentTaskProvider';
-import { fetchJson } from '@/lib/client/fetch-json';
+import { parseJDFromText } from '@/lib/ai/agents/jd-parser-agent';
+import { getStoredAIClientConfig } from '@/lib/client/ai-settings';
 import {
   createJD as createStoredJD,
   deleteJD as deleteStoredJD,
   getJD as getStoredJD,
   listJDs as listStoredJDs,
 } from '@/lib/client/workspace-storage';
-import type { ParsedJD } from '@/lib/types/jd';
 
 export const jdKeys = {
   all: ['jd'] as const,
@@ -46,18 +46,8 @@ export function useParseJD() {
           description: text.slice(0, 80),
           successMessage: '职位描述已解析并保存到当前浏览器工作区',
         },
-        async (signal) => {
-          const { rawText, parsed } = await fetchJson<{ rawText: string; parsed: ParsedJD | null }>(
-            '/api/jd',
-            {
-              method: 'POST',
-              body: JSON.stringify({ text }),
-              signal,
-            }
-          );
-
-          return createStoredJD(rawText, parsed);
-        }
+        async (signal) =>
+          createStoredJD(text, await parseJDFromText(text, getStoredAIClientConfig(), signal))
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: jdKeys.all });

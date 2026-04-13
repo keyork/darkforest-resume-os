@@ -12,6 +12,7 @@ export async function runMatchAnalysis(
   profileSummary: unknown,
   parsedJD: ParsedJD,
   clientConfig: AIClientConfig,
+  signal?: AbortSignal,
 ): Promise<MatchAnalysisResult> {
   const baseUserMessage = [
     '请基于以下权威结构化数据生成匹配分析。',
@@ -30,6 +31,7 @@ export async function runMatchAnalysis(
     maxTokens: 8192,
     temperature: 0.15,
     schema: MatchAnalysisSchema,
+    signal,
   });
 
   if (!isChineseMatchResult(result)) {
@@ -40,6 +42,7 @@ export async function runMatchAnalysis(
       maxTokens: 8192,
       temperature: 0.1,
       schema: MatchAnalysisSchema,
+      signal,
     });
   }
 

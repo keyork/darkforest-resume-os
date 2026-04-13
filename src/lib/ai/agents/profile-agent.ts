@@ -33,6 +33,7 @@ const MAX_RESUME_CHARS = 12_000;
 export async function parseProfileFromText(
   rawText: string,
   clientConfig: AIClientConfig,
+  signal?: AbortSignal,
 ): Promise<ParsedProfile> {
   const truncated = truncatePreservingHeadAndTail(rawText, MAX_RESUME_CHARS, {
     headRatio: 0.68,
@@ -50,6 +51,7 @@ export async function parseProfileFromText(
     maxTokens: 16_384,
     temperature: 0,
     schema: ParsedProfileSchema,
+    signal,
   });
 
   // Ensure all arrays exist

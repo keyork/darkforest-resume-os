@@ -12,9 +12,8 @@
 - **运行时**: Node.js >= 20
 - **框架**: Next.js 14 (App Router)
 - **UI**: React 18 + Tailwind CSS + shadcn/ui
-- **AI 引擎**: OPENAI API (`glm5`)
-- **数据存储**: SQLite (via better-sqlite3)，后续可迁移 PostgreSQL
-- **ORM**: Drizzle ORM
+- **AI 引擎**: 浏览器直连 OpenAI-compatible API
+- **数据存储**: 浏览器 `localStorage`
 - **包管理**: pnpm
 - **数据可视化**: Recharts
 - **Markdown 渲染**: react-markdown
@@ -103,7 +102,7 @@
 
 ## 数据模型设计
 
-### 数据库表结构（Drizzle ORM + SQLite）
+### 浏览器工作区结构（localStorage）
 
 **profiles 表**：用户档案元信息
 
@@ -528,8 +527,7 @@ resume-agent/
 ├── tsconfig.json
 ├── next.config.js
 ├── tailwind.config.ts
-├── drizzle.config.ts
-├── .env.local                    # OPENAI_API_KEY=sk-ant-...
+├── .env.local                    # 可选，本项目当前无必填环境变量
 │
 ├── src/
 │   ├── app/                      # Next.js App Router 页面
@@ -541,27 +539,17 @@ resume-agent/
 │   │   │   └── page.tsx          # JD 匹配分析
 │   │   ├── generate/
 │   │   │   └── page.tsx          # 简历生成
-│   │   └── api/                  # API 路由（结构同上方 API 设计）
-│   │       ├── profile/
-│   │       ├── items/
-│   │       ├── jd/
-│   │       ├── match/
-│   │       └── generate/
+│   │   └── api/                  # 最小服务端接口（文件转文本）
 │   │
 │   ├── lib/
 │   │   ├── ai/
-│   │   │   ├── client.ts         # OPENAI SDK 封装（统一的 callAgent 函数）
+│   │   │   ├── client.ts         # OpenAI-compatible 直连封装（统一的 callAgent 函数）
 │   │   │   ├── prompts.ts        # 所有 Prompt 模板集中管理
 │   │   │   └── agents/
 │   │   │       ├── profile-agent.ts
 │   │   │       ├── jd-parser-agent.ts
 │   │   │       ├── match-agent.ts
 │   │   │       └── resume-gen-agent.ts
-│   │   │
-│   │   ├── db/
-│   │   │   ├── schema.ts         # Drizzle Schema
-│   │   │   ├── index.ts          # DB 连接
-│   │   │   └── migrations/
 │   │   │
 │   │   ├── types/
 │   │   │   ├── item.ts           # Item 相关类型定义（5 种 Item + 通用属性）
@@ -604,8 +592,6 @@ resume-agent/
 │           ├── FileUpload.tsx           # 通用文件上传组件
 │           └── EmptyState.tsx           # 空状态引导组件
 │
-└── db/
-    └── resume-agent.db
 ```
 
 ---
@@ -614,9 +600,9 @@ resume-agent/
 
 ### Phase 1: 数据基础 + 手动编辑
 
-1. 项目初始化（Next.js + Tailwind + shadcn/ui + Drizzle + SQLite）
-2. 数据库 schema 实现 + migration
-3. Item CRUD API 全部实现
+1. 项目初始化（Next.js + Tailwind + shadcn/ui）
+2. 浏览器工作区结构实现
+3. 前端 Item CRUD 全部实现
 4. /profile 页面：ProfileHeader + ItemTabs + ItemCard + ItemForm（全部 5 种 Item 的手动增删改查 + 显隐切换 + 拖拽排序）
 5. Dashboard 基础框架
 
@@ -684,8 +670,7 @@ resume-agent/
 ## 环境变量
 
 ```text
-OPENAI_API_KEY=sk-ant-xxx    # 必须
-DATABASE_URL=./db/resume-agent.db
+# 当前无必填环境变量，AI 配置在设置页填写
 ```
 
 ---
@@ -694,6 +679,5 @@ DATABASE_URL=./db/resume-agent.db
 
 ```bash
 pnpm install
-pnpm db:push        # 初始化数据库
 pnpm dev            # 启动开发服务器 http://localhost:3000
 ```

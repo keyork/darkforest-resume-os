@@ -1,8 +1,9 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { generateResumeMarkdown } from '@/lib/ai/agents/resume-gen-agent';
 import { useAgentTasks } from '@/components/agent/AgentTaskProvider';
-import { fetchJson } from '@/lib/client/fetch-json';
+import { getStoredAIClientConfig } from '@/lib/client/ai-settings';
 import {
   createGeneratedResume as createStoredGeneratedResume,
   deleteGeneratedResume as deleteStoredGeneratedResume,
@@ -68,17 +69,31 @@ export function useGenerateResume() {
           const jd = input.jdId ? getJD(input.jdId) : undefined;
           const matchResult = input.matchResultId ? getMatchResult(input.matchResultId) : undefined;
 
-          const { content } = await fetchJson<{ content: string }>('/api/generate', {
-            method: 'POST',
-            body: JSON.stringify({
-              profile,
-              items: visibleItems,
+          const content = await generateResumeMarkdown(
+            {
+              profileName: profile.name,
+              profileTitle: profile.title,
+              profileSummary: profile.summary,
+              profileContact: {
+                email: profile.contact?.email,
+                phone: profile.contact?.phone,
+                location: profile.contact?.location,
+                website: profile.contact?.website,
+                linkedin: profile.contact?.linkedin,
+                github: profile.contact?.github,
+              },
+              visibleItems,
               strategy: input,
-              jd,
-              matchResult,
-            }),
+              parsedJD: jd?.parsed ?? null,
+              matchResult: matchResult
+                ? {
+                    resumeStrategy: matchResult.resumeStrategy,
+                  }
+                : null,
+            },
+            getStoredAIClientConfig(),
             signal,
-          });
+          );
 
           return createStoredGeneratedResume({
             strategy: input,

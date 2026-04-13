@@ -450,7 +450,7 @@ function ProjectFields({ form }: { form: any }) {
           <Label htmlFor="techStack">技术栈（逗号分隔）</Label>
           <Input
             id="techStack"
-            placeholder="Next.js, TypeScript, SQLite"
+            placeholder="Next.js, TypeScript, Postgres"
             defaultValue={form.getValues('techStack')?.join(', ') ?? ''}
             onBlur={(e) => form.setValue('techStack', parseTagsInput(e.target.value))}
           />

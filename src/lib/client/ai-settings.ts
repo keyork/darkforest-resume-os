@@ -1,6 +1,6 @@
 'use client';
 
-import { AI_API_KEY_HEADER, AI_BASE_URL_HEADER, AI_MODEL_HEADER } from '@/lib/ai/config';
+import { ensureAIClientConfig, type AIClientConfig } from '@/lib/ai/config';
 
 export const AI_SETTINGS_STORAGE_KEY = 'darkforest.ai.settings';
 export const DEFAULT_AI_MODEL = 'moonshotai/Kimi-K2.5';
@@ -55,21 +55,18 @@ export function hasStoredAISettings(settings = getStoredAISettings()): boolean {
   return Boolean(settings.apiKey && settings.baseURL);
 }
 
-export function buildAISettingsHeaders(init?: HeadersInit): Headers {
-  const headers = new Headers(init);
-  const settings = getStoredAISettings();
+export function getStoredAIClientConfig(settings = getStoredAISettings()): AIClientConfig {
+  return ensureAIClientConfig({
+    apiKey: settings.apiKey.trim(),
+    baseURL: settings.baseURL.trim(),
+    model: settings.modelName.trim() || DEFAULT_AI_MODEL,
+  });
+}
 
-  if (settings.apiKey) {
-    headers.set(AI_API_KEY_HEADER, settings.apiKey);
-  }
-
-  if (settings.baseURL) {
-    headers.set(AI_BASE_URL_HEADER, settings.baseURL);
-  }
-
-  if (settings.modelName) {
-    headers.set(AI_MODEL_HEADER, settings.modelName);
-  }
-
-  return headers;
+export function getAIClientConfigFromSettings(settings: AISettings): AIClientConfig {
+  return ensureAIClientConfig({
+    apiKey: settings.apiKey.trim(),
+    baseURL: settings.baseURL.trim(),
+    model: settings.modelName.trim() || DEFAULT_AI_MODEL,
+  });
 }

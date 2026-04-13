@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { parseProfileFromText } from '@/lib/ai/agents/profile-agent';
 import {
   isAgentTaskTerminatedError,
   useAgentTasks,
@@ -22,7 +23,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingAgent } from '@/components/shared/LoadingAgent';
 import { FileUpload } from '@/components/shared/FileUpload';
-import { fetchWithAISettings } from '@/lib/client/fetch-json';
+import { getStoredAIClientConfig } from '@/lib/client/ai-settings';
 import {
   getItemDeduplicationKey,
   importParsedProfile,
@@ -157,18 +158,6 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
     setStep('parsing');
 
     try {
-      let body: FormData | string;
-      let headers: Record<string, string> = {};
-
-      if (content instanceof File) {
-        const formData = new FormData();
-        formData.append('file', content);
-        body = formData;
-      } else {
-        body = JSON.stringify({ text: content });
-        headers = { 'Content-Type': 'application/json' };
-      }
-
       const res = await runTask(
         {
           kind: 'profile_parse',
@@ -176,21 +165,26 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
           description: content instanceof File ? content.name : content.slice(0, 80),
           successMessage: '简历内容已完成结构化解析',
         },
-        (signal) =>
-          fetchWithAISettings('/api/profile/import', {
-            method: 'POST',
-            headers,
-            body: body as BodyInit,
+        async (signal) => {
+          const nextRawText =
+            content instanceof File
+              ? await extractFileText(content, signal)
+              : content;
+
+          const nextParsed = await parseProfileFromText(
+            nextRawText,
+            getStoredAIClientConfig(),
             signal,
-          })
+          );
+
+          return {
+            rawText: nextRawText,
+            parsed: nextParsed,
+          };
+        }
       );
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? 'Parse failed');
-      }
-
-      const { rawText: rt, parsed: p } = await res.json();
+      const { rawText: rt, parsed: p } = res;
       setRawText(rt);
       setParsed(p);
       setPreviewItems(buildPreviewItems(p));
@@ -463,4 +457,28 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
       </DialogContent>
     </Dialog>
   );
+}
+
+async function extractFileText(file: File, signal: AbortSignal): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch('/api/profile/import', {
+    method: 'POST',
+    body: formData,
+    signal,
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => response.statusText);
+    throw new Error(body || '文件解析失败');
+  }
+
+  const data = (await response.json()) as { rawText?: string; error?: string };
+
+  if (!data.rawText?.trim()) {
+    throw new Error(data.error ?? '文件解析失败');
+  }
+
+  return data.rawText;
 }

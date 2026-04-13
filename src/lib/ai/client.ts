@@ -1,29 +1,6 @@
-import OpenAI from 'openai';
 import type { ZodType } from 'zod';
 import type { AIClientConfig } from './config';
-
-declare global {
-  // eslint-disable-next-line no-var
-  var __openaiClients: Map<string, OpenAI> | undefined;
-}
-
-function getOpenAI(config: AIClientConfig): OpenAI {
-  if (!global.__openaiClients) {
-    global.__openaiClients = new Map();
-  }
-
-  const cacheKey = `${config.baseURL}::${config.apiKey}`;
-  const existing = global.__openaiClients.get(cacheKey);
-  if (existing) return existing;
-
-  const client = new OpenAI({
-    apiKey: config.apiKey,
-    baseURL: config.baseURL,
-  });
-
-  global.__openaiClients.set(cacheKey, client);
-  return client;
-}
+import { ensureAIClientConfig, normalizeAIBaseURL } from './config';
 
 export interface CallAgentOptions {
   systemPrompt: string;
@@ -33,9 +10,12 @@ export interface CallAgentOptions {
   maxTokens?: number;
   temperature?: number;
   schema?: ZodType<unknown>;
+  signal?: AbortSignal;
+  timeoutMs?: number;
 }
 
 const DEFAULT_MODEL = 'moonshotai/Kimi-K2.5';
+export const AI_REQUEST_TIMEOUT_MS = 180_000;
 const MAX_JSON_RETRIES = 2;
 
 export async function callAgent<T>(options: CallAgentOptions): Promise<T> {
@@ -47,23 +27,22 @@ export async function callAgent<T>(options: CallAgentOptions): Promise<T> {
     maxTokens = 8192,
     temperature = 0.2,
     schema,
+    signal,
+    timeoutMs = AI_REQUEST_TIMEOUT_MS,
   } = options;
 
-  const client = getOpenAI(clientConfig);
   let lastError: Error | null = null;
 
   for (let attempt = 1; attempt <= MAX_JSON_RETRIES; attempt += 1) {
-    const response = await client.chat.completions.create({
+    const response = await createChatCompletion({
+      clientConfig,
       model,
-      max_tokens: maxTokens,
+      maxTokens,
       temperature,
-      // NOTE: do NOT pass response_format — Kimi API doesn't support it and
-      // returns empty content when the parameter is present. JSON output is
-      // enforced via the system prompt instead.
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userMessage },
-      ],
+      systemPrompt,
+      userMessage,
+      signal,
+      timeoutMs,
     });
 
     const choice = response.choices[0];
@@ -104,18 +83,19 @@ export async function callAgentText(options: CallAgentOptions): Promise<string> 
     model = clientConfig.model ?? DEFAULT_MODEL,
     maxTokens = 8192,
     temperature = 0.6,
+    signal,
+    timeoutMs = AI_REQUEST_TIMEOUT_MS,
   } = options;
 
-  const client = getOpenAI(clientConfig);
-
-  const response = await client.chat.completions.create({
+  const response = await createChatCompletion({
+    clientConfig,
     model,
-    max_tokens: maxTokens,
+    maxTokens,
     temperature,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userMessage },
-    ],
+    systemPrompt,
+    userMessage,
+    signal,
+    timeoutMs,
   });
 
   const choice = response.choices[0];
@@ -129,6 +109,161 @@ export async function callAgentText(options: CallAgentOptions): Promise<string> 
   }
 
   return content;
+}
+
+export async function testAIConnection(
+  clientConfig: AIClientConfig,
+  signal?: AbortSignal,
+): Promise<{ model: string; reply: string }> {
+  const normalizedConfig = ensureAIClientConfig(clientConfig);
+  const model = normalizedConfig.model ?? DEFAULT_MODEL;
+
+  const reply = await callAgentText({
+    systemPrompt: 'You are a connectivity test assistant.',
+    userMessage: 'Reply with exactly one word: PONG',
+    clientConfig: normalizedConfig,
+    model,
+    maxTokens: 16,
+    temperature: 0,
+    signal,
+    timeoutMs: 30_000,
+  });
+
+  return {
+    model,
+    reply: reply.trim() || '(empty response)',
+  };
+}
+
+interface CreateChatCompletionInput {
+  clientConfig: AIClientConfig;
+  model: string;
+  maxTokens: number;
+  temperature: number;
+  systemPrompt: string;
+  userMessage: string;
+  signal?: AbortSignal;
+  timeoutMs: number;
+}
+
+interface ChatCompletionResponse {
+  choices: Array<{
+    finish_reason?: string | null;
+    message?: {
+      content?: unknown;
+    } | null;
+  }>;
+}
+
+async function createChatCompletion(
+  input: CreateChatCompletionInput,
+): Promise<ChatCompletionResponse> {
+  const config = ensureAIClientConfig(input.clientConfig);
+  const request = createRequestSignal(input.signal, input.timeoutMs);
+
+  try {
+    const response = await fetch(`${normalizeAIBaseURL(config.baseURL)}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${config.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: input.model,
+        max_tokens: input.maxTokens,
+        temperature: input.temperature,
+        messages: [
+          { role: 'system', content: input.systemPrompt },
+          { role: 'user', content: input.userMessage },
+        ],
+      }),
+      signal: request.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(await formatErrorResponse(response));
+    }
+
+    return (await response.json()) as ChatCompletionResponse;
+  } catch (error) {
+    if (
+      request.didTimeout &&
+      (error instanceof DOMException && error.name === 'AbortError')
+    ) {
+      throw new Error(`AI request timed out after ${Math.round(input.timeoutMs / 1000)}s`);
+    }
+
+    throw error;
+  } finally {
+    request.cleanup();
+  }
+}
+
+function createRequestSignal(signal: AbortSignal | undefined, timeoutMs: number) {
+  const controller = new AbortController();
+  let didTimeout = false;
+
+  const onAbort = () => {
+    controller.abort(signal?.reason);
+  };
+
+  if (signal) {
+    if (signal.aborted) {
+      controller.abort(signal.reason);
+    } else {
+      signal.addEventListener('abort', onAbort, { once: true });
+    }
+  }
+
+  const timeoutId = windowOrGlobalThis().setTimeout(() => {
+    didTimeout = true;
+    controller.abort(new DOMException('AI request timeout', 'AbortError'));
+  }, timeoutMs);
+
+  return {
+    signal: controller.signal,
+    get didTimeout() {
+      return didTimeout;
+    },
+    cleanup() {
+      windowOrGlobalThis().clearTimeout(timeoutId);
+      signal?.removeEventListener('abort', onAbort);
+    },
+  };
+}
+
+function windowOrGlobalThis() {
+  return globalThis;
+}
+
+async function formatErrorResponse(response: Response): Promise<string> {
+  const bodyText = await response.text().catch(() => response.statusText);
+
+  try {
+    const parsed = JSON.parse(bodyText) as {
+      error?: {
+        message?: string;
+        code?: string;
+      } | string;
+    };
+    const errorObject =
+      parsed.error && typeof parsed.error === 'object'
+        ? parsed.error
+        : undefined;
+
+    if (typeof parsed.error === 'string' && parsed.error.trim()) {
+      return `${response.status} ${response.statusText}: ${parsed.error}`;
+    }
+
+    if (errorObject?.message) {
+      const code = errorObject.code ? ` (${errorObject.code})` : '';
+      return `${response.status} ${response.statusText}: ${errorObject.message}${code}`;
+    }
+  } catch {
+    // Ignore JSON parse errors and fall back to raw response text.
+  }
+
+  return `${response.status} ${response.statusText}: ${bodyText || response.statusText}`;
 }
 
 /**

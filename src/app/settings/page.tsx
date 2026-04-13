@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { AlertTriangle, CheckCircle2, ExternalLink, KeyRound, Loader2, Orbit, ServerCog, ShieldAlert, Sparkles, Wifi, XCircle } from 'lucide-react';
+import { testAIConnection } from '@/lib/ai/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,8 +16,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { clearAISettings, DEFAULT_AI_MODEL, getStoredAISettings, hasStoredAISettings, saveAISettings } from '@/lib/client/ai-settings';
-import { AI_API_KEY_HEADER, AI_BASE_URL_HEADER, AI_MODEL_HEADER } from '@/lib/ai/config';
+import {
+  clearAISettings,
+  DEFAULT_AI_MODEL,
+  getAIClientConfigFromSettings,
+  getStoredAISettings,
+  hasStoredAISettings,
+  saveAISettings,
+} from '@/lib/client/ai-settings';
 
 const PROVIDER_GUIDES = [
   {
@@ -88,22 +95,17 @@ export default function SettingsPage() {
     setTestMessage('');
     setTestModel('');
     try {
-      const headers = new Headers({ 'Content-Type': 'application/json' });
-      headers.set(AI_API_KEY_HEADER, apiKey.trim());
-      headers.set(AI_BASE_URL_HEADER, baseURL.trim());
-      if (modelName.trim()) headers.set(AI_MODEL_HEADER, modelName.trim());
+      const result = await testAIConnection(
+        getAIClientConfigFromSettings({
+          apiKey,
+          baseURL,
+          modelName,
+        }),
+      );
 
-      const res = await fetch('/api/ai/test', { method: 'POST', headers });
-      const data = await res.json() as { ok: boolean; model?: string; reply?: string; error?: string };
-
-      if (data.ok) {
-        setTestState('ok');
-        setTestModel(data.model ?? '');
-        setTestMessage(data.reply ?? 'OK');
-      } else {
-        setTestState('error');
-        setTestMessage(data.error ?? 'Unknown error');
-      }
+      setTestState('ok');
+      setTestModel(result.model);
+      setTestMessage(result.reply || 'OK');
     } catch (e) {
       setTestState('error');
       setTestMessage((e as Error).message);

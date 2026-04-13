@@ -10,6 +10,7 @@ const MAX_JD_CHARS = 8_000;
 export async function parseJDFromText(
   rawText: string,
   clientConfig: AIClientConfig,
+  signal?: AbortSignal,
 ): Promise<ParsedJD> {
   const truncated = truncatePreservingHeadAndTail(rawText, MAX_JD_CHARS, {
     headRatio: 0.64,
@@ -27,6 +28,7 @@ export async function parseJDFromText(
     maxTokens: 4096,
     temperature: 0,
     schema: ParsedJDSchema,
+    signal,
   });
 
   return {
