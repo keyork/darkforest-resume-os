@@ -136,7 +136,7 @@ export function ProfileHeader() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1">
             <Label htmlFor="name">姓名 *</Label>
             <Input id="name" {...form.register('name')} placeholder="你的姓名" />
@@ -160,7 +160,7 @@ export function ProfileHeader() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1">
             <Label htmlFor="email">邮箱</Label>
             <Input id="email" {...form.register('email')} placeholder="email@example.com" />
@@ -212,7 +212,7 @@ export function ProfileHeader() {
       )}
       onClick={startEdit}
     >
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1 min-w-0">
           {isEmpty ? (
             <div className="text-center py-4">
@@ -221,7 +221,7 @@ export function ProfileHeader() {
             </div>
           ) : (
             <>
-              <div className="flex items-baseline gap-3">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:gap-3">
                 <h1 className="text-xl font-semibold">{profile.name || '未填写姓名'}</h1>
                 {profile.title && (
                   <span className="text-sm text-muted-foreground">{profile.title}</span>
@@ -248,7 +248,7 @@ export function ProfileHeader() {
             </>
           )}
         </div>
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2">
+        <div className="ml-auto flex flex-shrink-0 gap-1 self-end opacity-100 transition-opacity sm:ml-2 sm:self-start sm:opacity-0 sm:group-hover:opacity-100">
           <Button
             variant="ghost"
             size="icon"

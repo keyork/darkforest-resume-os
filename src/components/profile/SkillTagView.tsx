@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -17,7 +16,7 @@ import { ItemForm } from './ItemForm';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SkillItem } from '@/lib/types/item';
-import { SKILL_CATEGORY_LABELS, SKILL_LEVEL_LABELS } from '@/lib/types/item';
+import { SKILL_CATEGORY_LABELS } from '@/lib/types/item';
 import { useToggleVisibility, useDeleteItem } from '@/lib/hooks/useItems';
 import { Eye, EyeOff, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';

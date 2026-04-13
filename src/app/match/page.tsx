@@ -18,6 +18,7 @@ import { GapAnalysis } from '@/components/match/GapAnalysis';
 import { StrategyAdvice } from '@/components/match/StrategyAdvice';
 import { useRunMatch, useMatchResults, useDeleteMatch, useMatchResult } from '@/lib/hooks/useMatch';
 import { useJDs } from '@/lib/hooks/useJD';
+import { PageHero } from '@/components/shared/PageHero';
 import type { JobDescription } from '@/lib/types/jd';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -53,43 +54,31 @@ export default function MatchPage() {
 
   return (
     <div className="page-shell page-stack">
-      <section className="surface-panel page-hero">
-        <div className="absolute -right-8 top-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-rose)/0.18)_0%,transparent_72%)] blur-2xl" />
-        <div className="page-hero-body">
-          <div className="page-hero-copy">
-            <div className="page-hero-kicker">
-              <Orbit className="h-3.5 w-3.5 text-[hsl(var(--signal-rose))]" />
-              岗位锁定
-            </div>
-            <h1 className="page-hero-title mt-4 text-3xl font-semibold sm:text-4xl">
-              <span className="inline-block text-gradient-cyber">JD 匹配分析</span>
-            </h1>
-            <p className="page-hero-summary">
-              选择或解析一份职位描述，AI 会把你的档案映射到岗位要求、差距项和简历策略。
-            </p>
-          </div>
-
-          <div className="page-hero-side">
-            <div className="inline-flex items-center gap-2 page-hero-pill">
+      <PageHero
+        kicker="岗位锁定"
+        title="JD 匹配分析"
+        summary="选择或解析一份职位描述，AI 会把你的档案映射到岗位要求、差距项和简历策略。"
+        icon={Orbit}
+        iconClassName="text-[hsl(var(--signal-rose))]"
+        glowClassName="bg-[radial-gradient(circle,hsl(var(--glow-rose)/0.18)_0%,transparent_72%)]"
+        side={
+          <>
+            <div className="page-hero-pill">
               <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
               五维语义评分
             </div>
-            <div className="page-hero-pill">
-              差距分析
-            </div>
-            <div className="page-hero-pill">
-              简历策略建议
-            </div>
-          </div>
-        </div>
-      </section>
+            <div className="page-hero-pill">差距分析</div>
+            <div className="page-hero-pill">简历策略建议</div>
+          </>
+        }
+      />
 
-      <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
+      <div className="page-grid-main" data-layout="sidebar">
         {/* Left panel */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           <Card className="flex-shrink-0">
             <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-sm">职位描述</CardTitle>
+              <CardTitle className="text-base">职位描述</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
               <JDInput
@@ -187,7 +176,7 @@ export default function MatchPage() {
         </div>
 
         {/* Right panel */}
-        <Card className="flex min-h-[34rem] flex-col overflow-hidden">
+        <Card className="flex min-h-[34rem] flex-col overflow-hidden xl:min-h-[40rem]">
           {!selectedJd && !activeResult ? (
             <div className="flex items-center justify-center flex-1 text-center">
               <div className="space-y-2">
@@ -205,7 +194,7 @@ export default function MatchPage() {
               className="flex flex-col flex-1 min-h-0 overflow-hidden"
             >
               <div className="flex-shrink-0 border-b px-4 pt-3">
-                <TabsList className="h-8">
+                <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-2xl bg-transparent p-0">
                   <TabsTrigger value="jd" disabled={!selectedJd} className="text-xs h-7">
                     JD 详情
                   </TabsTrigger>
@@ -227,7 +216,7 @@ export default function MatchPage() {
               </TabsContent>
 
               {/* Match result tab */}
-              <TabsContent value="result" className="flex-1 min-h-0 overflow-auto mt-0 p-5">
+              <TabsContent value="result" className="mt-0 flex-1 min-h-0 overflow-auto p-4 sm:p-5">
                 {loadingDetail ? (
                   <div className="flex items-center justify-center h-full gap-2 text-muted-foreground">
                     <Loader2 className="h-5 w-5 animate-spin" />

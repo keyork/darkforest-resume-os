@@ -20,6 +20,7 @@ import {
 import { useJDs } from '@/lib/hooks/useJD';
 import { useMatchResults } from '@/lib/hooks/useMatch';
 import { Label } from '@/components/ui/label';
+import { PageHero } from '@/components/shared/PageHero';
 import {
   Select,
   SelectContent,
@@ -89,38 +90,26 @@ export default function GeneratePage() {
 
   return (
     <div className="page-shell page-stack">
-      <section className="surface-panel page-hero">
-        <div className="absolute -right-10 top-2 h-36 w-36 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-solar)/0.18)_0%,transparent_72%)] blur-2xl" />
-        <div className="page-hero-body">
-          <div className="page-hero-copy">
-            <div className="page-hero-kicker">
-              <Orbit className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
-              简历工坊
-            </div>
-            <h1 className="page-hero-title mt-3 text-3xl font-semibold md:text-[2.15rem] xl:text-[2.35rem]">
-              <span className="inline-block text-gradient-cyber">简历生成</span>
-            </h1>
-            <p className="page-hero-summary">
-              选择叙事策略、语言和上下文，让 AI 输出一份能直接复制、下载、继续微调的 Markdown 简历。
-            </p>
-          </div>
-
-          <div className="page-hero-side">
-            <div className="inline-flex items-center gap-2 page-hero-pill">
+      <PageHero
+        kicker="简历工坊"
+        title="简历生成"
+        summary="选择叙事策略、语言和上下文，让 AI 输出一份能直接复制、下载、继续微调的 Markdown 简历。"
+        icon={Orbit}
+        iconClassName="text-[hsl(var(--signal-solar))]"
+        glowClassName="bg-[radial-gradient(circle,hsl(var(--glow-solar)/0.18)_0%,transparent_72%)]"
+        side={
+          <>
+            <div className="page-hero-pill">
               <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-jade))]" />
               多策略生成
             </div>
-            <div className="page-hero-pill">
-              Markdown 直接导出
-            </div>
-            <div className="page-hero-pill">
-              可叠加 JD 与匹配上下文
-            </div>
-          </div>
-        </div>
-      </section>
+            <div className="page-hero-pill">Markdown 直接导出</div>
+            <div className="page-hero-pill">可叠加 JD 与匹配上下文</div>
+          </>
+        }
+      />
 
-      <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
+      <div className="page-grid-main" data-layout="sidebar">
         {/* Left panel */}
         <div className="flex flex-col gap-4">
           <StrategyPanel value={strategy} onChange={setStrategy} />
@@ -254,7 +243,7 @@ export default function GeneratePage() {
         </div>
 
         {/* Right panel — preview */}
-        <Card className="flex min-h-[32rem] flex-col overflow-hidden">
+        <Card className="flex min-h-[32rem] flex-col overflow-hidden xl:min-h-[40rem]">
           {loadingContent ? (
             <div className="flex items-center justify-center flex-1 text-muted-foreground gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -272,7 +261,7 @@ export default function GeneratePage() {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between px-4 py-3 border-b flex-shrink-0">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 flex-shrink-0">
                 <span className="text-sm font-medium text-muted-foreground">Markdown 预览</span>
                 <ExportButtons content={activeResume.content} filename="resume" />
               </div>
