@@ -3,7 +3,7 @@
 import { AI_API_KEY_HEADER, AI_BASE_URL_HEADER, AI_MODEL_HEADER } from '@/lib/ai/config';
 
 export const AI_SETTINGS_STORAGE_KEY = 'darkforest.ai.settings';
-export const DEFAULT_AI_MODEL = 'kimi-k2.5';
+export const DEFAULT_AI_MODEL = 'moonshotai/Kimi-K2.5';
 
 export interface AISettings {
   apiKey: string;

@@ -92,33 +92,38 @@ export function DashboardClient() {
   ];
 
   return (
-    <div className="page-shell space-y-6">
-      <section className="surface-panel relative overflow-hidden rounded-[32px] px-5 py-6 sm:px-6 sm:py-6">
-        <div className="absolute inset-x-0 top-0 h-32 bg-[radial-gradient(circle_at_top,hsl(var(--glow-solar)/0.24),transparent_68%)]" />
+    <div className="page-shell page-stack">
+      <section className="surface-panel page-hero panel-tint-rose">
+        <div className="absolute inset-x-8 top-3 h-16 rounded-full bg-[linear-gradient(180deg,hsl(var(--foreground)/0.045),transparent_100%)] blur-xl" />
+        <div className="absolute inset-x-16 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--signal-solar)/0.4),transparent)]" />
         <div className="absolute -right-16 top-8 h-48 w-48 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-rose)/0.18)_0%,transparent_70%)] blur-2xl" />
         <div className="absolute bottom-0 left-1/3 h-40 w-40 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-jade)/0.16)_0%,transparent_70%)] blur-2xl" />
 
-        <div className="relative space-y-5">
-          <div className="max-w-3xl space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/50 px-3 py-1 text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
+        <div className="page-hero-body">
+          <div className="page-hero-copy space-y-4">
+            <div className="page-hero-kicker">
               <Orbit className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
-              Career Observatory
+              职业观测台
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center">
                 <TreePine className="h-7 w-7 text-primary" />
-                <h1 className="page-hero-title min-w-0 text-3xl font-semibold md:text-4xl xl:text-[2.8rem]">
+                <h1 className="page-hero-title min-w-0 pb-1 text-3xl font-semibold md:text-4xl xl:text-[2.8rem]">
                   {profileLoading ? (
                     <Skeleton className="h-10 w-56" />
+                  ) : profile?.name ? (
+                    <span className="inline-block text-gradient-cyber">
+                      {`你好，${profile.name}`}
+                    </span>
                   ) : (
                     <span className="inline-block text-gradient-cyber">
-                      {profile?.name ? `你好，${profile.name}` : 'Build a resume galaxy'}
+                      欢迎进入你的职业图谱
                     </span>
                   )}
                 </h1>
               </div>
-              <p className="max-w-[46rem] text-sm leading-6 text-muted-foreground sm:text-[15px]">
+              <p className="page-hero-summary max-w-[46rem]">
                 {hasData
                   ? `你的能力图谱已上线${profile?.title ? `，当前轨道聚焦 ${profile.title}` : ''}。现在可以把经历、技能和目标岗位组织成一份更锋利的叙事。`
                   : '把履历拆成可计算的模块，再用 AI 让它针对不同岗位重新编排。先上传旧简历，或者直接手动搭建你的职业宇宙。'}
@@ -140,42 +145,42 @@ export function DashboardClient() {
             </div>
 
             <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground sm:text-xs">
-              <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1">
-                Structured Items
+              <span className="rounded-full border border-transparent bg-background/46 px-3 py-1 shadow-[0_8px_18px_hsl(var(--shadow-color)/0.05)]">
+                结构化档案
               </span>
-              <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1">
-                JD Scoring
+              <span className="rounded-full border border-transparent bg-background/46 px-3 py-1 shadow-[0_8px_18px_hsl(var(--shadow-color)/0.05)]">
+                JD 评分分析
               </span>
-              <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1">
-                Multi-version Resume Generation
+              <span className="rounded-full border border-transparent bg-background/46 px-3 py-1 shadow-[0_8px_18px_hsl(var(--shadow-color)/0.05)]">
+                多版本简历生成
               </span>
             </div>
           </div>
 
-          <div className="grid gap-2.5 sm:grid-cols-3">
-            <div className="rounded-[24px] border border-border/70 bg-background/40 p-3.5">
+          <div className="grid gap-2.5 sm:grid-cols-3 lg:max-w-[28rem]">
+            <div className="rounded-[24px] border border-transparent bg-[linear-gradient(180deg,hsl(var(--signal-jade)/0.14),transparent),linear-gradient(180deg,hsl(var(--background)/0.82),hsl(var(--background-alt)/0.42))] p-3.5 shadow-[0_16px_36px_hsl(var(--shadow-color)/0.08)]">
               <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-                Atlas State
+                档案状态
               </div>
               <div className="mt-3 flex items-center gap-2">
                 <span className="cyber-dot inline-block h-2.5 w-2.5 rounded-full bg-[hsl(var(--signal-jade))]" />
                 <span className="text-lg font-semibold">
-                  {hasData ? 'Ready for targeting' : 'Awaiting first import'}
+                  {hasData ? '可开始定向优化' : '等待首次导入'}
                 </span>
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-border/70 bg-background/40 p-3.5">
+            <div className="rounded-[24px] border border-transparent bg-[linear-gradient(180deg,hsl(var(--signal-solar)/0.14),transparent),linear-gradient(180deg,hsl(var(--background)/0.82),hsl(var(--background-alt)/0.42))] p-3.5 shadow-[0_16px_36px_hsl(var(--shadow-color)/0.08)]">
               <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-                Total Items
+                条目总数
               </div>
               <div className="mt-3 text-4xl font-semibold tabular-nums">{totalItems}</div>
             </div>
 
-            <div className="rounded-[24px] border border-border/70 bg-background/40 p-3.5">
+            <div className="rounded-[24px] border border-transparent bg-[linear-gradient(180deg,hsl(var(--signal-rose)/0.14),transparent),linear-gradient(180deg,hsl(var(--background)/0.82),hsl(var(--background-alt)/0.42))] p-3.5 shadow-[0_16px_36px_hsl(var(--shadow-color)/0.08)]">
               <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5 text-[hsl(var(--signal-gold))]" />
-                Narrative Readiness
+                叙事就绪度
               </div>
               <div className="mt-3 text-sm leading-6 text-muted-foreground">
                 {hasData
@@ -194,8 +199,8 @@ export function DashboardClient() {
           description="上传你的简历，AI 会自动解析并构建结构化档案。也可以手动添加每一条记录。"
           action={
             <div className="flex flex-wrap justify-center gap-2">
-              <Button onClick={() => setImportOpen(true)}>
-                <Upload className="h-4 w-4 mr-2" />
+              <Button className="gap-2" onClick={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4" />
                 上传简历
               </Button>
               <Button variant="outline" asChild>
@@ -210,13 +215,13 @@ export function DashboardClient() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-                  Capability Atlas
+                  能力图谱
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold tracking-tight">能力概览</h2>
               </div>
-              <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-background/40 px-3 py-1.5 text-xs text-muted-foreground sm:flex">
+              <div className="hidden items-center gap-2 rounded-full border border-transparent bg-background/46 px-3 py-1.5 text-xs text-muted-foreground shadow-[0_8px_18px_hsl(var(--shadow-color)/0.05)] sm:flex">
                 <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-rose))]" />
-                Live item counts
+                实时条目统计
               </div>
             </div>
 
@@ -236,7 +241,7 @@ export function DashboardClient() {
                         </div>
                         <div className="space-y-1">
                           <div className="text-3xl font-semibold tabular-nums">{card.value}</div>
-                          <div className="text-xs text-muted-foreground">Tap to inspect</div>
+                          <div className="text-xs text-muted-foreground">点击查看</div>
                         </div>
                       </CardContent>
                     </Card>
@@ -294,7 +299,7 @@ export function DashboardClient() {
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-              Match Archive
+              匹配存档
             </p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight">最近匹配记录</h2>
           </div>

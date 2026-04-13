@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
+import { DarkforestLogo } from '@/components/layout/DarkforestLogo';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -17,17 +18,16 @@ import {
   User,
   Target,
   FileText,
-  TreePine,
   PanelLeft,
   Sparkles,
   Settings2,
 } from 'lucide-react';
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/profile', label: '我的档案', icon: User },
-  { href: '/match', label: 'JD 匹配', icon: Target },
-  { href: '/generate', label: '生成简历', icon: FileText },
+  { href: '/', label: '总览', icon: LayoutDashboard, slug: 'home' },
+  { href: '/profile', label: '我的档案', icon: User, slug: 'profile' },
+  { href: '/match', label: 'JD 匹配', icon: Target, slug: 'match' },
+  { href: '/generate', label: '生成简历', icon: FileText, slug: 'generate' },
 ];
 
 function SidebarContent({
@@ -49,9 +49,7 @@ function SidebarContent({
       <div className="pointer-events-none absolute inset-x-8 top-0 h-28 rounded-full bg-[radial-gradient(circle,hsl(var(--primary)/0.28)_0%,transparent_72%)] blur-2xl" />
 
       <div className="relative flex items-start gap-3 border-b border-border/60 pb-5">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
-          <TreePine className="h-5 w-5" />
-        </div>
+        <DarkforestLogo className="shrink-0" />
         <div className="min-w-0">
           <p className="text-[10px] uppercase tracking-[0.42em] text-muted-foreground">
             Darkforest
@@ -60,7 +58,7 @@ function SidebarContent({
             <span className="text-gradient-cyber">resume os</span>
           </h2>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-            Adaptive dossier system for matching, refining, and generating resumes.
+            一个用于匹配、优化与生成简历的自适应档案系统。
           </p>
         </div>
       </div>
@@ -68,7 +66,7 @@ function SidebarContent({
       <div className="relative mt-5 rounded-2xl border border-border/60 bg-background/40 p-3">
         <div className="flex items-center gap-2 text-xs uppercase tracking-[0.28em] text-muted-foreground">
           <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
-          Mode Orbit
+          模式切换
         </div>
         <div className="mt-3">
           <ThemeToggle className="w-full justify-between" />
@@ -116,7 +114,7 @@ function SidebarContent({
                   isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                 )}
               >
-                {item.href === '/' ? 'Hub' : item.href.replace('/', '')}
+                {item.slug}
               </span>
             </Link>
           );
@@ -124,13 +122,13 @@ function SidebarContent({
       </nav>
 
       <div className="relative mt-5 rounded-2xl border border-border/60 bg-background/40 p-4">
-        <p className="text-[10px] uppercase tracking-[0.38em] text-muted-foreground">Status</p>
+        <p className="text-[10px] uppercase tracking-[0.38em] text-muted-foreground">系统状态</p>
         <div className="mt-3 flex items-center gap-2">
           <span className="cyber-dot inline-block h-2.5 w-2.5 rounded-full bg-[hsl(var(--signal-jade))]" />
-          <span className="text-sm font-medium">System Online</span>
+          <span className="text-sm font-medium">系统在线</span>
         </div>
         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          Build resumes like navigable maps, not static PDFs.
+          让简历像可导航的地图，而不只是静态 PDF。
         </p>
 
         <Link
@@ -179,13 +177,16 @@ export function Sidebar() {
             </SheetContent>
           </Sheet>
 
-          <div>
-            <p className="text-[10px] uppercase tracking-[0.42em] text-muted-foreground">
-              Darkforest
-            </p>
-            <p className="mt-1 text-sm font-semibold tracking-tight text-gradient-cyber">
-              resume os
-            </p>
+          <div className="flex items-center gap-3">
+            <DarkforestLogo compact className="shadow-[0_12px_28px_hsl(var(--primary)/0.12)]" />
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.42em] text-muted-foreground">
+                Darkforest
+              </p>
+              <p className="mt-1 text-sm font-semibold tracking-tight text-gradient-cyber">
+                resume os
+              </p>
+            </div>
           </div>
         </div>
         <ThemeToggle compact />

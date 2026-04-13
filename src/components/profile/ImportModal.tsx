@@ -23,6 +23,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoadingAgent } from '@/components/shared/LoadingAgent';
 import { FileUpload } from '@/components/shared/FileUpload';
 import { fetchWithAISettings } from '@/lib/client/fetch-json';
+import {
+  getItemDeduplicationKey,
+  importParsedProfile,
+  listItems,
+} from '@/lib/client/workspace-storage';
 import { itemKeys } from '@/lib/hooks/useItems';
 import { profileKeys } from '@/lib/hooks/useProfile';
 import {
@@ -54,53 +59,49 @@ interface PreviewItem {
 }
 
 function buildPreviewItems(parsed: ParsedProfile): PreviewItem[] {
+  const existingItems = listItems();
+  const existingKeys = new Set(
+    existingItems
+      .map((item) => getItemDeduplicationKey(item.type, item))
+      .filter((key): key is string => Boolean(key))
+  );
+  const currentImportKeys = new Set<string>();
   const items: PreviewItem[] = [];
   let idx = 0;
 
-  for (const skill of parsed.skills ?? []) {
+  function pushItem(type: ItemType, data: ItemData) {
+    const dedupKey = getItemDeduplicationKey(type, data);
+    const isDuplicate = Boolean(
+      dedupKey && (existingKeys.has(dedupKey) || currentImportKeys.has(dedupKey))
+    );
+
+    if (dedupKey) {
+      currentImportKeys.add(dedupKey);
+    }
+
     items.push({
       id: `p_${idx++}`,
-      type: 'skill',
-      data: { type: 'skill', ...skill },
-      selected: true,
-      isDuplicate: false,
+      type,
+      data,
+      selected: !isDuplicate,
+      isDuplicate,
     });
+  }
+
+  for (const skill of parsed.skills ?? []) {
+    pushItem('skill', { type: 'skill', ...skill });
   }
   for (const exp of parsed.experiences ?? []) {
-    items.push({
-      id: `p_${idx++}`,
-      type: 'experience',
-      data: { type: 'experience', ...exp },
-      selected: true,
-      isDuplicate: false,
-    });
+    pushItem('experience', { type: 'experience', ...exp });
   }
   for (const prj of parsed.projects ?? []) {
-    items.push({
-      id: `p_${idx++}`,
-      type: 'project',
-      data: { type: 'project', ...prj },
-      selected: true,
-      isDuplicate: false,
-    });
+    pushItem('project', { type: 'project', ...prj });
   }
   for (const edu of parsed.educations ?? []) {
-    items.push({
-      id: `p_${idx++}`,
-      type: 'education',
-      data: { type: 'education', ...edu },
-      selected: true,
-      isDuplicate: false,
-    });
+    pushItem('education', { type: 'education', ...edu });
   }
   for (const cert of parsed.certifications ?? []) {
-    items.push({
-      id: `p_${idx++}`,
-      type: 'certification',
-      data: { type: 'certification', ...cert },
-      selected: true,
-      isDuplicate: false,
-    });
+    pushItem('certification', { type: 'certification', ...cert });
   }
 
   return items;
@@ -210,31 +211,29 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
     setIsLoading(true);
 
     try {
-      const res = await fetchWithAISettings('/api/profile/import/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: importMode,
-          profileData: parsed.profile,
-          items: previewItems.map((item) => ({
-            type: item.type,
-            data: item.data,
-            selected: item.selected,
-          })),
-        }),
+      const { imported, skippedDuplicates } = importParsedProfile({
+        mode: importMode,
+        profileData: parsed.profile,
+        items: previewItems.map((item) => ({
+          type: item.type,
+          data: item.data,
+          selected: item.selected,
+        })),
       });
 
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? 'Import failed');
+      if (skippedDuplicates > 0) {
+        toast.success(
+          `成功导入 ${imported} 条记录，跳过 ${skippedDuplicates} 条重复记录`
+        );
+      } else {
+        toast.success(`成功导入 ${imported} 条记录，数据已保存在当前浏览器`);
       }
-
-      const { imported } = await res.json();
-      toast.success(`成功导入 ${imported} 条记录`);
 
       // Invalidate all queries
       queryClient.invalidateQueries({ queryKey: itemKeys.all });
       queryClient.invalidateQueries({ queryKey: profileKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['match'] });
+      queryClient.invalidateQueries({ queryKey: ['generate'] });
 
       handleClose();
       router.push('/profile');
@@ -247,6 +246,7 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
 
   const isPreviewExpanded = step === 'preview';
   const selectedCount = previewItems.filter((i) => i.selected).length;
+  const duplicateCount = previewItems.filter((i) => i.isDuplicate).length;
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
@@ -343,10 +343,19 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
               <Alert className="flex-shrink-0">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  替换模式将清空所有现有档案数据，此操作不可撤销。
+                  替换模式将清空当前浏览器中的档案条目、匹配分析和简历生成历史，此操作不可撤销。
                 </AlertDescription>
               </Alert>
             )}
+
+            {duplicateCount > 0 && (
+                <Alert className="flex-shrink-0">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    检测到 {duplicateCount} 条疑似重复记录，已默认取消勾选；导入时也会自动跳过重复项。
+                  </AlertDescription>
+                </Alert>
+              )}
 
             {/* Main preview area */}
             <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
@@ -367,6 +376,7 @@ export function ImportModal({ open, onOpenChange }: ImportModalProps) {
                 <div className="flex items-center justify-between mb-2 flex-shrink-0">
                   <p className="text-xs font-medium text-muted-foreground">
                     解析出 {previewItems.length} 条记录
+                      {duplicateCount > 0 ? ` · 其中 ${duplicateCount} 条疑似重复` : ''}
                   </p>
                   <div className="flex gap-2">
                     <button

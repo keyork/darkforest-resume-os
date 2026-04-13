@@ -1,8 +1,18 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAgentTasks } from '@/components/agent/AgentTaskProvider';
 import { fetchJson } from '@/lib/client/fetch-json';
+import {
+  createMatchResult as createStoredMatchResult,
+  deleteMatchResult as deleteStoredMatchResult,
+  getJD,
+  getMatchResult as getStoredMatchResult,
+  getProfile,
+  listJDs,
+  listItems,
+  listMatchResults,
+} from '@/lib/client/workspace-storage';
 import type { MatchResult } from '@/lib/types/match';
 
 export const matchKeys = {
@@ -26,8 +36,21 @@ export function useMatchResults() {
   return useQuery({
     queryKey: matchKeys.lists(),
     queryFn: async () => {
-      const { results } = await fetchJson<{ results: MatchSummary[] }>('/api/match');
-      return results;
+      const jds = new Map(listJDs().map((jd) => [jd.id, jd] as const));
+
+      return listMatchResults().map((result) => {
+        const jd = jds.get(result.jdId);
+        return {
+          id: result.id,
+          profileId: result.profileId,
+          jdId: result.jdId,
+          overallScore: result.scores.overall,
+          summary: result.summary,
+          company: jd?.parsed?.company ?? undefined,
+          position: jd?.parsed?.position ?? undefined,
+          createdAt: result.createdAt,
+        } satisfies MatchSummary;
+      });
     },
   });
 }
@@ -35,10 +58,7 @@ export function useMatchResults() {
 export function useMatchResult(id: string) {
   return useQuery({
     queryKey: matchKeys.detail(id),
-    queryFn: async () => {
-      const { result } = await fetchJson<{ result: MatchResult }>(`/api/match/${id}`);
-      return result;
-    },
+    queryFn: async () => getStoredMatchResult(id),
     enabled: Boolean(id),
   });
 }
@@ -54,32 +74,47 @@ export function useRunMatch() {
           kind: 'match_run',
           title: 'JD 匹配分析',
           description: `基于职位 ${jdId} 生成匹配分析`,
-          successMessage: '匹配分析已完成',
+          successMessage: '匹配分析已完成并保存到当前浏览器工作区',
         },
         async (signal) => {
-          const { result } = await fetchJson<{ result: MatchResult }>('/api/match', {
+          const jd = getJD(jdId);
+          const profile = getProfile();
+          const visibleItems = listItems({ visible: true });
+
+          if (!jd?.parsed) {
+            throw new Error('请先选择一份已解析的 JD');
+          }
+
+          const { analysis } = await fetchJson<{
+            analysis: Omit<MatchResult, 'id' | 'profileId' | 'jdId' | 'createdAt'>;
+          }>('/api/match', {
             method: 'POST',
-            body: JSON.stringify({ jdId }),
+            body: JSON.stringify({
+              jd,
+              profile,
+              items: visibleItems,
+            }),
             signal,
           });
-          return result;
+
+          return createStoredMatchResult(analysis, jdId);
         }
       ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: matchKeys.all });
+      queryClient.invalidateQueries({ queryKey: matchKeys.detail(result.id) });
     },
   });
 }
 
 export function useDeleteMatch() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (id: string) => {
-      await fetchJson(`/api/match/${id}`, { method: 'DELETE' });
-      return id;
-    },
+    mutationFn: async (id: string) => deleteStoredMatchResult(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: matchKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['generate'] });
     },
   });
 }

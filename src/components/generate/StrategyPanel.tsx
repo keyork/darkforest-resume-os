@@ -34,7 +34,7 @@ export function StrategyPanel({ value, onChange }: StrategyPanelProps) {
   const selected = NARRATIVE_OPTIONS.find((o) => o.value === value.narrative);
 
   return (
-    <Card>
+    <Card className="panel-tint-solar">
       <CardHeader className="pb-3">
         <CardTitle className="text-base">生成策略</CardTitle>
       </CardHeader>
@@ -61,7 +61,7 @@ export function StrategyPanel({ value, onChange }: StrategyPanelProps) {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>语言</Label>
             <Select

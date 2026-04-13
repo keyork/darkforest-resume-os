@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { db, serializeProfile } from '@/lib/db';
 import { profiles, items } from '@/lib/db/schema';
-import type { Profile, Contact } from '@/lib/types/profile';
+import type { Profile } from '@/lib/types/profile';
 import { eq } from 'drizzle-orm';
 
 const PROFILE_DEFAULT_ID = 'profile_default';

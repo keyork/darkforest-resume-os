@@ -1,9 +1,19 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAgentTasks } from '@/components/agent/AgentTaskProvider';
 import { fetchJson } from '@/lib/client/fetch-json';
-import type { GeneratedResume, GenerationStrategy } from '@/lib/types/resume';
+import {
+  createGeneratedResume as createStoredGeneratedResume,
+  deleteGeneratedResume as deleteStoredGeneratedResume,
+  getGeneratedResume as getStoredGeneratedResume,
+  getJD,
+  getMatchResult,
+  getProfile,
+  listGeneratedResumes as listStoredGeneratedResumes,
+  listItems,
+} from '@/lib/client/workspace-storage';
+import type { GenerationStrategy } from '@/lib/types/resume';
 
 export const generateKeys = {
   all: ['generate'] as const,
@@ -14,22 +24,22 @@ export const generateKeys = {
 export function useGeneratedResumes() {
   return useQuery({
     queryKey: generateKeys.lists(),
-    queryFn: async () => {
-      const { resumes } = await fetchJson<{ resumes: Omit<GeneratedResume, 'content'>[] }>(
-        '/api/generate'
-      );
-      return resumes;
-    },
+    queryFn: async () =>
+      listStoredGeneratedResumes().map((resume) => ({
+        id: resume.id,
+        profileId: resume.profileId,
+        jdId: resume.jdId,
+        matchResultId: resume.matchResultId,
+        strategy: resume.strategy,
+        createdAt: resume.createdAt,
+      })),
   });
 }
 
 export function useGeneratedResume(id: string) {
   return useQuery({
     queryKey: generateKeys.detail(id),
-    queryFn: async () => {
-      const { resume } = await fetchJson<{ resume: GeneratedResume }>(`/api/generate/${id}`);
-      return resume;
-    },
+    queryFn: async () => getStoredGeneratedResume(id),
     enabled: Boolean(id),
   });
 }
@@ -50,32 +60,48 @@ export function useGenerateResume() {
           kind: 'resume_generate',
           title: '简历生成',
           description: `策略 ${input.narrative} · ${input.language} · ${input.length}`,
-          successMessage: '简历已生成并保存到历史记录',
+          successMessage: '简历已生成并保存到当前浏览器工作区',
         },
         async (signal) => {
-          const { resume } = await fetchJson<{ resume: GeneratedResume }>('/api/generate', {
+          const profile = getProfile();
+          const visibleItems = listItems({ visible: true });
+          const jd = input.jdId ? getJD(input.jdId) : undefined;
+          const matchResult = input.matchResultId ? getMatchResult(input.matchResultId) : undefined;
+
+          const { content } = await fetchJson<{ content: string }>('/api/generate', {
             method: 'POST',
-            body: JSON.stringify(input),
+            body: JSON.stringify({
+              profile,
+              items: visibleItems,
+              strategy: input,
+              jd,
+              matchResult,
+            }),
             signal,
           });
-          return resume;
+
+          return createStoredGeneratedResume({
+            strategy: input,
+            content,
+            jdId: input.jdId,
+            matchResultId: input.matchResultId,
+          });
         }
       ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: generateKeys.lists() });
+    onSuccess: (resume) => {
+      queryClient.invalidateQueries({ queryKey: generateKeys.all });
+      queryClient.invalidateQueries({ queryKey: generateKeys.detail(resume.id) });
     },
   });
 }
 
 export function useDeleteGeneratedResume() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (id: string) => {
-      await fetchJson(`/api/generate/${id}`, { method: 'DELETE' });
-      return id;
-    },
+    mutationFn: async (id: string) => deleteStoredGeneratedResume(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: generateKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: generateKeys.all });
     },
   });
 }

@@ -34,6 +34,7 @@ import { toast } from 'sonner';
 
 interface ItemCardProps {
   item: Item;
+  dragDisabled?: boolean;
 }
 
 function SourceBadge({ source }: { source: Item['source'] }) {
@@ -154,7 +155,7 @@ function ItemSummary({ item }: { item: Item }) {
   }
 }
 
-export function ItemCard({ item }: ItemCardProps) {
+export function ItemCard({ item, dragDisabled = false }: ItemCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const toggleVisibility = useToggleVisibility();
   const deleteItem = useDeleteItem();
@@ -168,7 +169,7 @@ export function ItemCard({ item }: ItemCardProps) {
     isDragging,
   } = useSortable({
     id: item.id,
-    disabled: isEditing,
+    disabled: isEditing || dragDisabled,
   });
 
   const style = {
@@ -210,8 +211,8 @@ export function ItemCard({ item }: ItemCardProps) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group flex items-start gap-2 rounded-[24px] border border-border/70 bg-card/90 p-3 transition-all',
-        item.visible ? '' : 'opacity-60 bg-muted/30',
+        'group flex items-start gap-2 rounded-[24px] border border-transparent bg-[linear-gradient(180deg,hsl(var(--background)/0.8),hsl(var(--background-alt)/0.4))] p-3 shadow-[0_16px_36px_hsl(var(--shadow-color)/0.07)] transition-all',
+        item.visible ? '' : 'bg-muted/24 opacity-60',
         isDragging && 'opacity-50 shadow-lg z-50'
       )}
     >
@@ -219,8 +220,15 @@ export function ItemCard({ item }: ItemCardProps) {
       <button
         {...attributes}
         {...listeners}
-        className="mt-1 p-0.5 cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground flex-shrink-0"
+        className={cn(
+          'mt-1 p-0.5 text-muted-foreground/40 hover:text-muted-foreground flex-shrink-0',
+          dragDisabled
+            ? 'cursor-not-allowed opacity-30'
+            : 'cursor-grab active:cursor-grabbing'
+        )}
         tabIndex={-1}
+        disabled={dragDisabled}
+        title={dragDisabled ? '请切换到“全部”视图后再拖拽排序' : '拖拽排序'}
       >
         <GripVertical className="h-4 w-4" />
       </button>

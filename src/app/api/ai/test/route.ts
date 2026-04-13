@@ -7,7 +7,7 @@ import OpenAI from 'openai';
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const config = getAIClientConfigFromHeaders(req.headers);
-    const model = config.model ?? 'kimi-k2.5';
+    const model = config.model ?? 'moonshotai/Kimi-K2.5';
 
     const client = new OpenAI({ apiKey: config.apiKey, baseURL: config.baseURL });
 

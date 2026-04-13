@@ -234,7 +234,10 @@ export function ItemForm({ type, item, onClose }: ItemFormProps) {
   const isPending = createItem.isPending || updateItem.isPending;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4 border rounded-lg bg-card">
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="space-y-4 rounded-[28px] border border-transparent bg-[linear-gradient(180deg,hsl(var(--background)/0.82),hsl(var(--background-alt)/0.42))] p-4 shadow-[0_18px_40px_hsl(var(--shadow-color)/0.08)]"
+    >
       {/* Form fields per type */}
       {type === 'skill' && <SkillFields form={form} />}
       {type === 'experience' && <ExperienceFields form={form} />}
@@ -242,7 +245,7 @@ export function ItemForm({ type, item, onClose }: ItemFormProps) {
       {type === 'education' && <EducationFields form={form} />}
       {type === 'certification' && <CertificationFields form={form} />}
 
-      <div className="flex justify-end gap-2 pt-2 border-t">
+      <div className="flex justify-end gap-2 border-t border-foreground/6 pt-2">
         <Button type="button" variant="ghost" size="sm" onClick={onClose}>
           <X className="h-4 w-4 mr-1" /> 取消
         </Button>

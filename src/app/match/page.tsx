@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Trash2, ChevronRight, Orbit, Sparkles } from 'lucide-react';
+import { Loader2, Trash2, ChevronRight, Orbit, Sparkles, ScanSearch } from 'lucide-react';
 import { JDInput } from '@/components/match/JDInput';
 import { JDDetail } from '@/components/match/JDDetail';
 import { MatchScoreCard } from '@/components/match/MatchScoreCard';
@@ -18,6 +18,7 @@ import { GapAnalysis } from '@/components/match/GapAnalysis';
 import { StrategyAdvice } from '@/components/match/StrategyAdvice';
 import { useRunMatch, useMatchResults, useDeleteMatch, useMatchResult } from '@/lib/hooks/useMatch';
 import { useJDs } from '@/lib/hooks/useJD';
+import { PageHero } from '@/components/shared/PageHero';
 import type { JobDescription } from '@/lib/types/jd';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -53,43 +54,32 @@ export default function MatchPage() {
 
   return (
     <div className="page-shell page-stack">
-      <section className="surface-panel page-hero">
-        <div className="absolute -right-8 top-0 h-36 w-36 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-rose)/0.18)_0%,transparent_72%)] blur-2xl" />
-        <div className="page-hero-body">
-          <div className="page-hero-copy">
-            <div className="page-hero-kicker">
-              <Orbit className="h-3.5 w-3.5 text-[hsl(var(--signal-rose))]" />
-              岗位锁定
-            </div>
-            <h1 className="page-hero-title mt-4 text-3xl font-semibold sm:text-4xl">
-              <span className="inline-block text-gradient-cyber">JD 匹配分析</span>
-            </h1>
-            <p className="page-hero-summary">
-              选择或解析一份职位描述，AI 会把你的档案映射到岗位要求、差距项和简历策略。
-            </p>
-          </div>
-
-          <div className="page-hero-side">
-            <div className="inline-flex items-center gap-2 page-hero-pill">
+      <PageHero
+        kicker="岗位锁定"
+        title="JD 匹配分析"
+        summary="选择或解析一份职位描述，AI 会把你的档案映射到岗位要求、差距项和简历策略。"
+        icon={Orbit}
+        className="panel-tint-rose"
+        iconClassName="text-[hsl(var(--signal-rose))]"
+        glowClassName="bg-[radial-gradient(circle,hsl(var(--glow-rose)/0.18)_0%,transparent_72%)]"
+        side={
+          <>
+            <div className="page-hero-pill">
               <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-solar))]" />
               五维语义评分
             </div>
-            <div className="page-hero-pill">
-              差距分析
-            </div>
-            <div className="page-hero-pill">
-              简历策略建议
-            </div>
-          </div>
-        </div>
-      </section>
+            <div className="page-hero-pill">差距分析</div>
+            <div className="page-hero-pill">简历策略建议</div>
+          </>
+        }
+      />
 
-      <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)]">
+      <div className="page-grid-main" data-layout="sidebar">
         {/* Left panel */}
-        <div className="flex flex-col gap-3">
-          <Card className="flex-shrink-0">
+        <div className="flex flex-col gap-4">
+          <Card className="panel-tint-rose flex-shrink-0">
             <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-sm">职位描述</CardTitle>
+              <CardTitle className="text-base">职位描述</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
               <JDInput
@@ -101,11 +91,11 @@ export default function MatchPage() {
           </Card>
 
           <Button
-            className="w-full flex-shrink-0"
+            className="w-full flex-shrink-0 gap-2"
             disabled={!selectedJd || runMatch.isPending}
             onClick={handleRunMatch}
           >
-            {runMatch.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            {runMatch.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             {runMatch.isPending ? '分析中…' : '开始匹配分析'}
           </Button>
 
@@ -114,7 +104,7 @@ export default function MatchPage() {
           )}
 
           {/* Match history */}
-          <Card className="flex min-h-[18rem] flex-col overflow-hidden">
+          <Card className="panel-tint-ink flex min-h-[18rem] flex-col overflow-hidden">
             <CardHeader className="pb-2 pt-4 px-4 flex-shrink-0">
               <CardTitle className="text-sm">历史匹配</CardTitle>
             </CardHeader>
@@ -187,11 +177,13 @@ export default function MatchPage() {
         </div>
 
         {/* Right panel */}
-        <Card className="flex min-h-[34rem] flex-col overflow-hidden">
+        <Card className="panel-tint-solar flex min-h-[34rem] flex-col overflow-hidden xl:min-h-[40rem]">
           {!selectedJd && !activeResult ? (
             <div className="flex items-center justify-center flex-1 text-center">
-              <div className="space-y-2">
-                <div className="text-4xl">🎯</div>
+              <div className="space-y-3">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-border/70 bg-background/40">
+                  <ScanSearch className="h-5 w-5 text-muted-foreground/60" />
+                </div>
                 <div className="font-medium">选择一份职位开始</div>
                 <div className="text-sm text-muted-foreground">
                   从左侧列表选择或粘贴新的 JD
@@ -205,7 +197,7 @@ export default function MatchPage() {
               className="flex flex-col flex-1 min-h-0 overflow-hidden"
             >
               <div className="flex-shrink-0 border-b px-4 pt-3">
-                <TabsList className="h-8">
+                <TabsList className="h-auto w-full flex-wrap justify-start gap-2 rounded-2xl bg-transparent p-0">
                   <TabsTrigger value="jd" disabled={!selectedJd} className="text-xs h-7">
                     JD 详情
                   </TabsTrigger>
@@ -227,7 +219,7 @@ export default function MatchPage() {
               </TabsContent>
 
               {/* Match result tab */}
-              <TabsContent value="result" className="flex-1 min-h-0 overflow-auto mt-0 p-5">
+              <TabsContent value="result" className="mt-0 flex-1 min-h-0 overflow-auto p-4 sm:p-5">
                 {loadingDetail ? (
                   <div className="flex items-center justify-center h-full gap-2 text-muted-foreground">
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -242,7 +234,7 @@ export default function MatchPage() {
                     <MatchScoreCard scores={activeResult.scores} summary={activeResult.summary} />
 
                     <div className="grid gap-4 lg:grid-cols-2">
-                      <Card>
+                      <Card className="panel-tint-rose">
                         <CardHeader className="pb-2">
                           <CardTitle className="text-base">能力雷达图</CardTitle>
                         </CardHeader>
@@ -251,7 +243,7 @@ export default function MatchPage() {
                         </CardContent>
                       </Card>
 
-                      <Card>
+                      <Card className="panel-tint-jade">
                         <CardHeader className="pb-2">
                           <CardTitle className="text-base">简历策略建议</CardTitle>
                         </CardHeader>
