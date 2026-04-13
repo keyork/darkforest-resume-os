@@ -32,7 +32,7 @@ export interface CallAgentOptions {
   maxTokens?: number;
 }
 
-const DEFAULT_MODEL = 'kimi-k2.5';
+const DEFAULT_MODEL = 'moonshotai/Kimi-K2.5';
 const MAX_JSON_RETRIES = 2;
 
 export async function callAgent<T>(options: CallAgentOptions): Promise<T> {
