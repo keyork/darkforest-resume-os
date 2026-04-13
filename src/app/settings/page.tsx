@@ -132,8 +132,7 @@ export default function SettingsPage() {
               <span className="inline-block text-gradient-cyber">连接你的模型服务</span>
             </h1>
             <p className="page-hero-summary">
-              这个项目现在只从前端页面读取 API Key、Base URL 和模型名，不再依赖 `.env` 文件。
-              你保存的内容只会存放在当前浏览器的 localStorage 中，并在发起 AI 请求时随请求一起发送到服务端。
+              填好 API Key、接口地址和模型名后，你就可以直接开始解析简历、匹配 JD 和生成简历。
             </p>
           </div>
           <div className="page-hero-pill text-sm">
@@ -150,7 +149,7 @@ export default function SettingsPage() {
               填写连接信息
             </CardTitle>
             <CardDescription>
-              建议直接复制服务商后台里的值，避免手动输入时漏掉协议头或 `/v1` 路径。
+              建议直接从服务商控制台或文档复制，避免手动输入出错。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -191,16 +190,15 @@ export default function SettingsPage() {
                 onChange={(e) => setModelName(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
-                这是实际发起请求时使用的 model 字段。如果你不确定，可先保留默认值。
+                就填写你准备实际使用的模型名；如果不确定，可以先保留默认值再测试。
               </p>
             </div>
 
             <Alert>
               <ShieldAlert className="h-4 w-4" />
-              <AlertTitle>存储方式说明</AlertTitle>
+              <AlertTitle>使用提醒</AlertTitle>
               <AlertDescription>
-                为了满足“只从网页前端读取”的要求，这些值会保存在当前浏览器里，而不是项目的 `.env` 文件中。
-                如果你更换浏览器、开无痕窗口或清空站点数据，需要重新填写。
+                这些设置只对当前设备生效。如果你更换浏览器、使用无痕窗口，或清理站点数据，需要重新填写。
               </AlertDescription>
             </Alert>
 
@@ -240,7 +238,7 @@ export default function SettingsPage() {
                 去哪里拿 API Key、Base URL 和模型名
               </CardTitle>
               <CardDescription>
-                下面是最常见的几种方式。这个项目支持 OpenAI 兼容接口，三项配置都建议直接从服务商文档或控制台复制。
+                下面是最常见的几种服务。三项配置都建议直接从服务商后台或文档复制。
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -278,7 +276,7 @@ export default function SettingsPage() {
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>填写建议</AlertTitle>
             <AlertDescription>
-              如果请求报错，先检查三件事：一是 Base URL 是否完整，二是模型名是否可用，三是该服务是否真的兼容 OpenAI Chat Completions 接口。
+              如果连接失败，优先检查三件事：API Key 是否有效、接口地址是否正确、模型名是否可用。
             </AlertDescription>
           </Alert>
         </div>
@@ -329,7 +327,7 @@ export default function SettingsPage() {
                   {testMessage}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  请检查 API Key 是否有效、Base URL 是否正确（需以 <code className="font-mono">/v1</code> 结尾）、模型名是否可用。
+                  请检查 API Key、接口地址和模型名是否填写正确。
                 </p>
               </div>
             )}

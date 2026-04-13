@@ -19,12 +19,12 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'surface-panel flex flex-col items-center justify-center gap-4 rounded-[28px] border-dashed px-6 py-14 text-center',
+        'surface-panel panel-tint-ink flex flex-col items-center justify-center gap-4 rounded-[28px] border-transparent px-6 py-14 text-center',
         className
       )}
     >
       {Icon && (
-        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full border border-transparent bg-primary/12 text-primary shadow-[0_14px_30px_hsl(var(--primary)/0.12)]">
           <Icon className="h-6 w-6" />
         </div>
       )}

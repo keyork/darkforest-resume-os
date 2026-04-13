@@ -24,10 +24,10 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { href: '/', label: '总览', icon: LayoutDashboard },
-  { href: '/profile', label: '我的档案', icon: User },
-  { href: '/match', label: 'JD 匹配', icon: Target },
-  { href: '/generate', label: '生成简历', icon: FileText },
+  { href: '/', label: '总览', icon: LayoutDashboard, slug: 'home' },
+  { href: '/profile', label: '我的档案', icon: User, slug: 'profile' },
+  { href: '/match', label: 'JD 匹配', icon: Target, slug: 'match' },
+  { href: '/generate', label: '生成简历', icon: FileText, slug: 'generate' },
 ];
 
 function SidebarContent({
@@ -114,7 +114,7 @@ function SidebarContent({
                   isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                 )}
               >
-                {item.href === '/' ? '总览' : item.href.replace('/', '')}
+                {item.slug}
               </span>
             </Link>
           );

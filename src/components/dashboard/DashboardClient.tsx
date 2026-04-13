@@ -93,7 +93,7 @@ export function DashboardClient() {
 
   return (
     <div className="page-shell page-stack">
-      <section className="surface-panel page-hero">
+      <section className="surface-panel page-hero panel-tint-rose">
         <div className="absolute inset-x-8 top-3 h-16 rounded-full bg-[linear-gradient(180deg,hsl(var(--foreground)/0.045),transparent_100%)] blur-xl" />
         <div className="absolute inset-x-16 top-0 h-px bg-[linear-gradient(90deg,transparent,hsl(var(--signal-solar)/0.4),transparent)]" />
         <div className="absolute -right-16 top-8 h-48 w-48 rounded-full bg-[radial-gradient(circle,hsl(var(--glow-rose)/0.18)_0%,transparent_70%)] blur-2xl" />
@@ -145,20 +145,20 @@ export function DashboardClient() {
             </div>
 
             <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground sm:text-xs">
-              <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1">
+              <span className="rounded-full border border-transparent bg-background/46 px-3 py-1 shadow-[0_8px_18px_hsl(var(--shadow-color)/0.05)]">
                 结构化档案
               </span>
-              <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1">
+              <span className="rounded-full border border-transparent bg-background/46 px-3 py-1 shadow-[0_8px_18px_hsl(var(--shadow-color)/0.05)]">
                 JD 评分分析
               </span>
-              <span className="rounded-full border border-border/70 bg-background/40 px-3 py-1">
+              <span className="rounded-full border border-transparent bg-background/46 px-3 py-1 shadow-[0_8px_18px_hsl(var(--shadow-color)/0.05)]">
                 多版本简历生成
               </span>
             </div>
           </div>
 
           <div className="grid gap-2.5 sm:grid-cols-3 lg:max-w-[28rem]">
-            <div className="rounded-[24px] border border-border/70 bg-background/40 p-3.5">
+            <div className="rounded-[24px] border border-transparent bg-[linear-gradient(180deg,hsl(var(--signal-jade)/0.14),transparent),linear-gradient(180deg,hsl(var(--background)/0.82),hsl(var(--background-alt)/0.42))] p-3.5 shadow-[0_16px_36px_hsl(var(--shadow-color)/0.08)]">
               <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
                 档案状态
               </div>
@@ -170,14 +170,14 @@ export function DashboardClient() {
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-border/70 bg-background/40 p-3.5">
+            <div className="rounded-[24px] border border-transparent bg-[linear-gradient(180deg,hsl(var(--signal-solar)/0.14),transparent),linear-gradient(180deg,hsl(var(--background)/0.82),hsl(var(--background-alt)/0.42))] p-3.5 shadow-[0_16px_36px_hsl(var(--shadow-color)/0.08)]">
               <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
                 条目总数
               </div>
               <div className="mt-3 text-4xl font-semibold tabular-nums">{totalItems}</div>
             </div>
 
-            <div className="rounded-[24px] border border-border/70 bg-background/40 p-3.5">
+            <div className="rounded-[24px] border border-transparent bg-[linear-gradient(180deg,hsl(var(--signal-rose)/0.14),transparent),linear-gradient(180deg,hsl(var(--background)/0.82),hsl(var(--background-alt)/0.42))] p-3.5 shadow-[0_16px_36px_hsl(var(--shadow-color)/0.08)]">
               <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
                 <ShieldCheck className="h-3.5 w-3.5 text-[hsl(var(--signal-gold))]" />
                 叙事就绪度
@@ -199,8 +199,8 @@ export function DashboardClient() {
           description="上传你的简历，AI 会自动解析并构建结构化档案。也可以手动添加每一条记录。"
           action={
             <div className="flex flex-wrap justify-center gap-2">
-              <Button onClick={() => setImportOpen(true)}>
-                <Upload className="h-4 w-4 mr-2" />
+              <Button className="gap-2" onClick={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4" />
                 上传简历
               </Button>
               <Button variant="outline" asChild>
@@ -219,7 +219,7 @@ export function DashboardClient() {
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold tracking-tight">能力概览</h2>
               </div>
-              <div className="hidden items-center gap-2 rounded-full border border-border/70 bg-background/40 px-3 py-1.5 text-xs text-muted-foreground sm:flex">
+              <div className="hidden items-center gap-2 rounded-full border border-transparent bg-background/46 px-3 py-1.5 text-xs text-muted-foreground shadow-[0_8px_18px_hsl(var(--shadow-color)/0.05)] sm:flex">
                 <Sparkles className="h-3.5 w-3.5 text-[hsl(var(--signal-rose))]" />
                 实时条目统计
               </div>
@@ -299,7 +299,7 @@ export function DashboardClient() {
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-              Match Archive
+              匹配存档
             </p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight">最近匹配记录</h2>
           </div>

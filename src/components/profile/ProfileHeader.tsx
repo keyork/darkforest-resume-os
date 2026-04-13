@@ -116,7 +116,7 @@ export function ProfileHeader() {
     return (
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="surface-panel space-y-4 rounded-[30px] p-6"
+        className="surface-panel panel-tint-jade space-y-4 rounded-[30px] p-6"
       >
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-sm text-muted-foreground">编辑基本信息</h2>
@@ -129,8 +129,8 @@ export function ProfileHeader() {
             >
               <X className="h-4 w-4" />
             </Button>
-            <Button type="submit" size="sm" disabled={updateProfile.isPending}>
-              <Check className="h-4 w-4 mr-1" />
+            <Button type="submit" size="sm" className="gap-1.5" disabled={updateProfile.isPending}>
+              <Check className="h-4 w-4" />
               保存
             </Button>
           </div>
@@ -207,7 +207,7 @@ export function ProfileHeader() {
   return (
     <div
       className={cn(
-        'surface-panel group cursor-pointer rounded-[30px] p-6 transition-colors hover:border-primary/40',
+        'surface-panel panel-tint-jade group cursor-pointer rounded-[30px] p-6 transition-colors hover:border-transparent',
         isEmpty && 'border-dashed'
       )}
       onClick={startEdit}

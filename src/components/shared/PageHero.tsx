@@ -6,6 +6,7 @@ interface PageHeroProps {
   title: string;
   summary: string;
   icon: LucideIcon;
+  className?: string;
   iconClassName?: string;
   glowClassName?: string;
   side?: React.ReactNode;
@@ -16,12 +17,13 @@ export function PageHero({
   title,
   summary,
   icon: Icon,
+  className,
   iconClassName,
   glowClassName,
   side,
 }: PageHeroProps) {
   return (
-    <section className="surface-panel page-hero">
+    <section className={cn('surface-panel page-hero', className)}>
       <div
         className={cn(
           'absolute -right-8 top-0 h-36 w-36 rounded-full blur-2xl',

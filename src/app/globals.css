@@ -249,25 +249,53 @@ body > div {
 
 @layer components {
   .surface-panel {
+    --panel-glow: hsl(var(--foreground) / 0.035);
+    --panel-edge: hsl(var(--foreground) / 0.05);
     background:
-      linear-gradient(180deg, hsl(var(--surface-strong) / 0.92), hsl(var(--card) / 0.9)),
+      radial-gradient(circle at top right, var(--panel-glow) 0%, transparent 44%),
+      linear-gradient(180deg, hsl(var(--surface-strong) / 0.96), hsl(var(--card) / 0.9)),
       hsl(var(--card) / 0.9);
-    border: 1px solid hsl(var(--border) / 0.8);
+    border: 1px solid var(--panel-edge);
     box-shadow:
-      0 20px 60px hsl(var(--shadow-color) / 0.12),
+      0 24px 64px hsl(var(--shadow-color) / 0.12),
+      0 12px 30px hsl(var(--foreground) / 0.035),
       inset 0 1px 0 hsl(0 0% 100% / 0.08);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
   }
 
   .glass-panel {
-    background: linear-gradient(180deg, hsl(var(--card) / 0.7), hsl(var(--surface-soft) / 0.64));
-    border: 1px solid hsl(var(--border) / 0.7);
+    --panel-glow: hsl(var(--foreground) / 0.035);
+    --panel-edge: hsl(var(--foreground) / 0.045);
+    background:
+      radial-gradient(circle at top right, var(--panel-glow) 0%, transparent 42%),
+      linear-gradient(180deg, hsl(var(--card) / 0.74), hsl(var(--surface-soft) / 0.68));
+    border: 1px solid var(--panel-edge);
     box-shadow:
       0 18px 54px hsl(var(--shadow-color) / 0.14),
       inset 0 1px 0 hsl(0 0% 100% / 0.08);
     backdrop-filter: blur(18px);
     -webkit-backdrop-filter: blur(18px);
+  }
+
+  .panel-tint-solar {
+    --panel-glow: hsl(var(--signal-solar) / 0.2);
+    --panel-edge: hsl(var(--signal-solar) / 0.08);
+  }
+
+  .panel-tint-rose {
+    --panel-glow: hsl(var(--signal-rose) / 0.18);
+    --panel-edge: hsl(var(--signal-rose) / 0.08);
+  }
+
+  .panel-tint-jade {
+    --panel-glow: hsl(var(--signal-jade) / 0.18);
+    --panel-edge: hsl(var(--signal-jade) / 0.08);
+  }
+
+  .panel-tint-ink {
+    --panel-glow: hsl(var(--signal-ink) / 0.18);
+    --panel-edge: hsl(var(--signal-ink) / 0.08);
   }
 
   .glow-primary {
@@ -296,7 +324,7 @@ body > div {
     box-shadow:
       0 22px 60px hsl(var(--shadow-color) / 0.16),
       0 0 34px hsl(var(--primary) / 0.14);
-    border-color: hsl(var(--primary) / 0.22);
+    border-color: hsl(var(--primary) / 0.12);
   }
 
   .text-gradient-cyber {
@@ -429,8 +457,9 @@ body > div {
     align-items: center;
     gap: 0.5rem;
     border-radius: 999px;
-    border: 1px solid hsl(var(--border) / 0.7);
-    background: hsl(var(--background) / 0.5);
+    border: 1px solid hsl(var(--foreground) / 0.05);
+    background:
+      linear-gradient(180deg, hsl(var(--background) / 0.72), hsl(var(--background-alt) / 0.5));
     padding: 0.375rem 0.875rem;
     font-size: 11px;
     font-weight: 500;
@@ -438,6 +467,7 @@ body > div {
     letter-spacing: 0.18em;
     color: hsl(var(--muted-foreground));
     white-space: nowrap;
+    box-shadow: 0 10px 22px hsl(var(--shadow-color) / 0.06);
   }
 
   .page-hero-summary {
@@ -462,14 +492,16 @@ body > div {
     align-items: center;
     gap: 0.5rem;
     border-radius: 999px;
-    border: 1px solid hsl(var(--border) / 0.7);
-    background: hsl(var(--background) / 0.4);
+    border: 1px solid hsl(var(--foreground) / 0.05);
+    background:
+      linear-gradient(180deg, hsl(var(--background) / 0.68), hsl(var(--background-alt) / 0.42));
     padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
     color: hsl(var(--muted-foreground));
     max-width: 100%;
     white-space: normal;
     line-height: 1.45;
+    box-shadow: 0 10px 24px hsl(var(--shadow-color) / 0.05);
   }
 
   .page-grid-main {

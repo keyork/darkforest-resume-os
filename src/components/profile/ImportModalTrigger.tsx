@@ -10,8 +10,8 @@ export function ImportModalTrigger() {
 
   return (
     <>
-      <Button variant="outline" className="min-w-[9.5rem]" onClick={() => setOpen(true)}>
-        <Upload className="h-4 w-4 mr-2" />
+      <Button variant="outline" className="min-w-[9.5rem] gap-2" onClick={() => setOpen(true)}>
+        <Upload className="h-4 w-4" />
         从简历导入
       </Button>
       <ImportModal open={open} onOpenChange={setOpen} />

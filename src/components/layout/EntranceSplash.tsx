@@ -5,35 +5,60 @@ import { Orbit, Sparkles } from 'lucide-react';
 import { DarkforestLogo } from '@/components/layout/DarkforestLogo';
 import { cn } from '@/lib/utils';
 
-const SPLASH_ENTER_MS = 1850;
-const SPLASH_EXIT_MS = 2450;
+const SPLASH_MIN_MS = 1600;
+const SPLASH_EXIT_MS = 550;
 
 export function EntranceGate({ children }: { children: React.ReactNode }) {
-  const [showApp, setShowApp] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
   const [leaving, setLeaving] = useState(false);
 
   useEffect(() => {
-    const leaveTimer = window.setTimeout(() => {
-      setShowApp(true);
-      setLeaving(true);
-    }, SPLASH_ENTER_MS);
+    let minElapsed = false;
+    let appMounted = false;
+    let exitTimer: number | null = null;
+    let raf1 = 0;
+    let raf2 = 0;
 
-    const settleTimer = window.setTimeout(() => {
-      setLeaving(false);
-    }, SPLASH_EXIT_MS);
+    const maybeLeave = () => {
+      if (!minElapsed || !appMounted) return;
+
+      setLeaving(true);
+      exitTimer = window.setTimeout(() => {
+        setShowSplash(false);
+        setLeaving(false);
+      }, SPLASH_EXIT_MS);
+    };
+
+    const minTimer = window.setTimeout(() => {
+      minElapsed = true;
+      maybeLeave();
+    }, SPLASH_MIN_MS);
+
+    // Let the app tree mount and paint behind the splash first.
+    raf1 = window.requestAnimationFrame(() => {
+      raf2 = window.requestAnimationFrame(() => {
+        appMounted = true;
+        maybeLeave();
+      });
+    });
 
     return () => {
-      window.clearTimeout(leaveTimer);
-      window.clearTimeout(settleTimer);
+      window.clearTimeout(minTimer);
+      if (exitTimer !== null) {
+        window.clearTimeout(exitTimer);
+      }
+      window.cancelAnimationFrame(raf1);
+      window.cancelAnimationFrame(raf2);
     };
   }, []);
 
   return (
     <>
-      {showApp ? children : null}
+      {children}
 
-      {(!showApp || leaving) && (
+      {showSplash && (
         <div
+          aria-hidden="true"
           className={cn(
             'fixed inset-0 z-[120] flex items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,hsl(var(--glow-solar)/0.16),transparent_28%),radial-gradient(circle_at_18%_22%,hsl(var(--glow-rose)/0.16),transparent_24%),radial-gradient(circle_at_78%_18%,hsl(var(--glow-jade)/0.14),transparent_22%),linear-gradient(180deg,hsl(var(--background))_0%,hsl(var(--background-alt))_100%)] transition duration-500',
             leaving ? 'pointer-events-none opacity-0 blur-sm' : 'opacity-100'

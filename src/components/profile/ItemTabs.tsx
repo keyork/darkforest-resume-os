@@ -91,7 +91,7 @@ function TabItem({ type }: { type: ItemType }) {
     <TabsTrigger
       value={type}
       className={cn(
-        'relative rounded-full border border-border/70 bg-background/35 px-4 py-2.5 text-sm data-[state=active]:border-primary/30 data-[state=active]:bg-primary/10 data-[state=active]:shadow-[0_10px_22px_hsl(var(--primary)/0.12)]',
+        'relative rounded-full border border-transparent bg-[linear-gradient(180deg,hsl(var(--background)/0.72),hsl(var(--background-alt)/0.4))] px-4 py-2.5 text-sm data-[state=active]:bg-primary/12 data-[state=active]:shadow-[0_10px_22px_hsl(var(--primary)/0.12)]',
       )}
     >
       {ITEM_TYPE_LABELS[type]}
@@ -130,11 +130,14 @@ function TabContent({
   reorderItems,
 }: TabContentProps) {
   const visible = visibilityFilter === 'visible' ? true : visibilityFilter === 'hidden' ? false : undefined;
+  const canReorder = visible === undefined;
   const { data: items, isLoading } = useItems(type, visible);
 
   const filteredItems = items ?? [];
 
   async function handleDragEnd(event: DragEndEvent) {
+    if (!canReorder) return;
+
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -153,7 +156,7 @@ function TabContent({
   return (
     <div className="space-y-3">
       {/* Toolbar */}
-      <div className="flex flex-col gap-3 rounded-[24px] border border-border/70 bg-background/35 p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-[24px] border border-transparent bg-[linear-gradient(180deg,hsl(var(--signal-jade)/0.12),transparent),linear-gradient(180deg,hsl(var(--background)/0.82),hsl(var(--background-alt)/0.42))] p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-1.5">
           {(['all', 'visible', 'hidden'] as VisibilityFilter[]).map((f) => (
             <Button
@@ -168,8 +171,13 @@ function TabContent({
           ))}
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {!canReorder && (
+            <span className="text-xs text-muted-foreground">
+              仅“全部”视图支持拖拽排序
+            </span>
+          )}
           {type === 'skill' && (
-            <div className="flex gap-1 rounded-full border border-border/70 bg-background/40 p-1">
+            <div className="flex gap-1 rounded-full border border-transparent bg-background/45 p-1 shadow-[0_8px_18px_hsl(var(--shadow-color)/0.05)]">
               <Button
                 variant={skillView === 'tag' ? 'secondary' : 'ghost'}
                 size="icon"
@@ -192,11 +200,11 @@ function TabContent({
           )}
           <Button
             size="sm"
-            className="h-8 text-xs"
+            className="h-8 gap-1.5 text-xs"
             onClick={() => setIsAdding(true)}
             disabled={isAdding}
           >
-            <Plus className="h-3.5 w-3.5 mr-1" />
+            <Plus className="h-3.5 w-3.5" />
             添加
           </Button>
         </div>
@@ -225,8 +233,8 @@ function TabContent({
           title={`还没有${ITEM_TYPE_LABELS[type]}`}
           description={`点击「添加」手动创建，或上传简历让 AI 自动解析`}
           action={
-            <Button size="sm" onClick={() => setIsAdding(true)}>
-              <Plus className="h-4 w-4 mr-1" />
+            <Button size="sm" className="gap-2" onClick={() => setIsAdding(true)}>
+              <Plus className="h-4 w-4" />
               添加{ITEM_TYPE_LABELS[type]}
             </Button>
           }
@@ -250,7 +258,7 @@ function TabContent({
               >
                 <div className="space-y-2">
                   {filteredItems.map((item) => (
-                    <ItemCard key={item.id} item={item} />
+                    <ItemCard key={item.id} item={item} dragDisabled={!canReorder} />
                   ))}
                 </div>
               </SortableContext>

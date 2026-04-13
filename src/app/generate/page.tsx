@@ -7,7 +7,7 @@ import { isAgentTaskTerminatedError } from '@/components/agent/AgentTaskProvider
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Trash2, Orbit, Sparkles } from 'lucide-react';
+import { Loader2, Trash2, Orbit, Sparkles, FileSearch2 } from 'lucide-react';
 import { StrategyPanel, type StrategyConfig } from '@/components/generate/StrategyPanel';
 import { ResumePreview } from '@/components/generate/ResumePreview';
 import { ExportButtons } from '@/components/generate/ExportButtons';
@@ -39,6 +39,14 @@ export default function GeneratePage() {
   const [selectedJdId, setSelectedJdId] = useState<string>('none');
   const [selectedMatchId, setSelectedMatchId] = useState<string>('none');
   const [activeResumeId, setActiveResumeId] = useState<string | null>(null);
+
+  const NARRATIVE_LABELS: Record<string, string> = {
+    achievement: '成果导向',
+    skill: '技能导向',
+    growth: '成长轨迹',
+    leadership: '领导力',
+    technical: '技术深度',
+  };
 
   const { data: jds = [] } = useJDs();
   const { data: matchResults = [] } = useMatchResults();
@@ -95,6 +103,7 @@ export default function GeneratePage() {
         title="简历生成"
         summary="选择叙事策略、语言和上下文，让 AI 输出一份能直接复制、下载、继续微调的 Markdown 简历。"
         icon={Orbit}
+        className="panel-tint-solar"
         iconClassName="text-[hsl(var(--signal-solar))]"
         glowClassName="bg-[radial-gradient(circle,hsl(var(--glow-solar)/0.18)_0%,transparent_72%)]"
         side={
@@ -115,7 +124,7 @@ export default function GeneratePage() {
           <StrategyPanel value={strategy} onChange={setStrategy} />
 
           {/* Optional JD / Match context */}
-          <Card>
+          <Card className="panel-tint-jade">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">关联上下文（可选）</CardTitle>
             </CardHeader>
@@ -166,12 +175,12 @@ export default function GeneratePage() {
           </Card>
 
           <Button
-            className="w-full"
+            className="w-full gap-2"
             onClick={handleGenerate}
             disabled={generateResume.isPending}
           >
-            {generateResume.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            AI 生成简历
+            {generateResume.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {generateResume.isPending ? '生成中…' : 'AI 生成简历'}
           </Button>
 
           {generateResume.isError && (
@@ -179,7 +188,7 @@ export default function GeneratePage() {
           )}
 
           {/* History */}
-          <Card className="flex min-h-[18rem] flex-col overflow-hidden">
+          <Card className="panel-tint-ink flex min-h-[18rem] flex-col overflow-hidden">
             <CardHeader className="pb-3">
               <CardTitle className="text-base">历史简历</CardTitle>
             </CardHeader>
@@ -214,7 +223,7 @@ export default function GeneratePage() {
                             <div className="line-clamp-2 break-words text-sm font-medium leading-5">
                               {linkedJd?.parsed?.position
                                 ? `${linkedJd.parsed.position}${linkedJd.parsed.company ? ` · ${linkedJd.parsed.company}` : ''}`
-                                : (r.strategy as StrategyConfig).narrative + ' · ' + ((r.strategy as StrategyConfig).language === 'zh' ? '中文' : 'EN')}
+                                : (NARRATIVE_LABELS[(r.strategy as StrategyConfig).narrative] ?? (r.strategy as StrategyConfig).narrative) + ' · ' + ((r.strategy as StrategyConfig).language === 'zh' ? '中文' : 'EN')}
                             </div>
                             <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                               {(r.strategy as StrategyConfig).length} · {format(new Date(r.createdAt), 'MM-dd HH:mm')}
@@ -243,16 +252,29 @@ export default function GeneratePage() {
         </div>
 
         {/* Right panel — preview */}
-        <Card className="flex min-h-[32rem] flex-col overflow-hidden xl:min-h-[40rem]">
-          {loadingContent ? (
+        <Card className="panel-tint-solar flex min-h-[32rem] flex-col overflow-hidden xl:min-h-[40rem]">
+          {generateResume.isPending ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground">
+              <div className="relative">
+                <div className="h-12 w-12 rounded-2xl border border-border/70 bg-background/40" />
+                <Loader2 className="absolute inset-0 m-auto h-5 w-5 animate-spin text-primary" />
+              </div>
+              <div className="space-y-1 text-center">
+                <p className="text-sm font-medium text-foreground">正在生成简历</p>
+                <p className="text-xs">AI 正在根据你的档案和策略撰写内容，请稍候…</p>
+              </div>
+            </div>
+          ) : loadingContent ? (
             <div className="flex items-center justify-center flex-1 text-muted-foreground gap-2">
               <Loader2 className="h-5 w-5 animate-spin" />
-              生成中，请稍候…
+              <span className="text-sm">加载中…</span>
             </div>
           ) : !activeResume ? (
             <div className="flex items-center justify-center flex-1 text-center">
-              <div className="space-y-2">
-                <div className="text-4xl">📄</div>
+              <div className="space-y-3">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-border/70 bg-background/40">
+                  <FileSearch2 className="h-5 w-5 text-muted-foreground/60" />
+                </div>
                 <div className="font-medium">简历预览</div>
                 <div className="text-sm text-muted-foreground">
                   配置策略后点击「AI 生成简历」

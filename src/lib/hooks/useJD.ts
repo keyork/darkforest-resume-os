@@ -1,10 +1,16 @@
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAgentTasks } from '@/components/agent/AgentTaskProvider';
-import type { JobDescription } from '@/lib/types/jd';
-import { fetchJson } from '@/lib/client/fetch-json';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useAgentTasks } from '@/components/agent/AgentTaskProvider';
+import { fetchJson } from '@/lib/client/fetch-json';
+import {
+  createJD as createStoredJD,
+  deleteJD as deleteStoredJD,
+  getJD as getStoredJD,
+  listJDs as listStoredJDs,
+} from '@/lib/client/workspace-storage';
+import type { ParsedJD } from '@/lib/types/jd';
 
 export const jdKeys = {
   all: ['jd'] as const,
@@ -15,20 +21,14 @@ export const jdKeys = {
 export function useJDs() {
   return useQuery({
     queryKey: jdKeys.lists(),
-    queryFn: async () => {
-      const { jds } = await fetchJson<{ jds: JobDescription[] }>('/api/jd');
-      return jds;
-    },
+    queryFn: async () => listStoredJDs(),
   });
 }
 
 export function useJD(id: string) {
   return useQuery({
     queryKey: jdKeys.detail(id),
-    queryFn: async () => {
-      const { jd } = await fetchJson<{ jd: JobDescription }>(`/api/jd/${id}`);
-      return jd;
-    },
+    queryFn: async () => getStoredJD(id),
     enabled: Boolean(id),
   });
 }
@@ -44,46 +44,39 @@ export function useParseJD() {
           kind: 'jd_parse',
           title: 'JD 解析',
           description: text.slice(0, 80),
-          successMessage: '职位描述已解析并加入历史列表',
+          successMessage: '职位描述已解析并保存到当前浏览器工作区',
         },
         async (signal) => {
-          const { jd } = await fetchJson<{ jd: JobDescription }>('/api/jd', {
-            method: 'POST',
-            body: JSON.stringify({ text }),
-            signal,
-          });
-          return jd;
+          const { rawText, parsed } = await fetchJson<{ rawText: string; parsed: ParsedJD | null }>(
+            '/api/jd',
+            {
+              method: 'POST',
+              body: JSON.stringify({ text }),
+              signal,
+            }
+          );
+
+          return createStoredJD(rawText, parsed);
         }
       ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: jdKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: jdKeys.all });
     },
   });
 }
 
 export function useDeleteJD() {
   const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (id: string) => {
-      await fetchJson(`/api/jd/${id}`, { method: 'DELETE' });
-      return id;
-    },
-    onMutate: async (id: string) => {
-      await queryClient.cancelQueries({ queryKey: jdKeys.lists() });
-      const prev = queryClient.getQueryData<JobDescription[]>(jdKeys.lists());
-      queryClient.setQueryData<JobDescription[]>(jdKeys.lists(), (old) =>
-        old ? old.filter((jd) => jd.id !== id) : []
-      );
-      return { prev };
-    },
-    onError: (_err, _id, ctx) => {
-      if (ctx?.prev) {
-        queryClient.setQueryData(jdKeys.lists(), ctx.prev);
-      }
+    mutationFn: async (id: string) => deleteStoredJD(id),
+    onError: () => {
       toast.error('删除失败，请重试');
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: jdKeys.lists() });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: jdKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['match'] });
+      queryClient.invalidateQueries({ queryKey: ['generate'] });
     },
   });
 }
