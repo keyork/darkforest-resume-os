@@ -37,7 +37,7 @@ function shimmerBarStyle(score: number): CSSProperties {
       : 'hsl(var(--signal-rose)) 0%, hsl(var(--signal-solar)) 50%, hsl(var(--signal-rose)) 100%';
   return {
     width: `${score}%`,
-    background: `linear-gradient(90deg, ${stops})`,
+    backgroundImage: `linear-gradient(90deg, ${stops})`,
     backgroundSize: '200% 100%',
     animation: 'shimmer 2.5s ease-in-out infinite',
   };

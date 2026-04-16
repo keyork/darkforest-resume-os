@@ -1,13 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ImportModal } from '@/components/profile/ImportModal';
+import { hasStoredAISettings } from '@/lib/client/ai-settings';
+import { enterDemoMode, exitDemoMode } from '@/lib/client/demo-mode';
+import { useDemoMode } from '@/lib/hooks/useDemoMode';
 import { useItems } from '@/lib/hooks/useItems';
 import { useMatchResults } from '@/lib/hooks/useMatch';
 import { useProfile } from '@/lib/hooks/useProfile';
@@ -25,10 +29,16 @@ import {
   Orbit,
   Sparkles,
   ShieldCheck,
+  ShieldAlert,
+  Beaker,
+  Database,
+  Cpu,
 } from 'lucide-react';
 
 export function DashboardClient() {
   const [importOpen, setImportOpen] = useState(false);
+  const [hasAIConfig, setHasAIConfig] = useState(false);
+  const { isDemoMode, hasBackup, mounted: demoMounted } = useDemoMode();
 
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: skills } = useItems('skill');
@@ -47,6 +57,20 @@ export function DashboardClient() {
 
   const hasData = totalItems > 0;
   const recentMatchResults = matchResults.slice(0, 5);
+
+  useEffect(() => {
+    setHasAIConfig(hasStoredAISettings());
+  }, []);
+
+  function handleEnterDemoMode() {
+    enterDemoMode();
+    toast.success(hasData ? '已切换到示例环境，你原来的本地工作区会在退出时恢复' : '已进入示例环境');
+  }
+
+  function handleExitDemoMode() {
+    exitDemoMode();
+    toast.success(hasBackup ? '已退出示例环境，并恢复你原来的本地工作区' : '已退出示例环境，并清空示例数据');
+  }
 
   const statsCards = [
     {
@@ -142,6 +166,19 @@ export function DashboardClient() {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
+              {demoMounted && (
+                isDemoMode ? (
+                  <Button size="lg" variant="outline" onClick={handleExitDemoMode} className="gap-2.5">
+                    <Beaker className="h-4 w-4" />
+                    退出示例环境
+                  </Button>
+                ) : (
+                  <Button size="lg" variant="outline" onClick={handleEnterDemoMode} className="gap-2.5">
+                    <Beaker className="h-4 w-4" />
+                    进入示例环境
+                  </Button>
+                )
+              )}
             </div>
 
             <div className="flex flex-wrap gap-2 text-[11px] text-muted-foreground sm:text-xs">
@@ -191,6 +228,65 @@ export function DashboardClient() {
           </div>
         </div>
       </section>
+
+      {demoMounted && (!hasAIConfig || isDemoMode) && (
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+          <Card className="panel-tint-solar overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Beaker className="h-5 w-5 text-[hsl(var(--signal-solar))]" />
+                {isDemoMode ? '当前已进入示例环境' : '先看示例环境，不需要 API Key'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm leading-6 text-muted-foreground">
+                示例环境会直接载入一套预置档案、JD、匹配结果和简历，让用户先看完整工作流，再决定是否填写自己的 Key 开始真实使用。
+              </p>
+              <div className="rounded-[22px] border border-border/70 bg-background/35 p-4 text-sm text-muted-foreground">
+                {isDemoMode
+                  ? '示例数据已经载入。你现在可以直接浏览档案、匹配和简历页面；如果要运行自己的 AI 请求，再去设置页填 API Key。'
+                  : '进入示例环境后不会要求 API Key。若当前浏览器已有工作区，系统会先做本地备份，退出示例环境时自动恢复。'}
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {isDemoMode ? (
+                  <Button onClick={handleExitDemoMode}>退出示例环境</Button>
+                ) : (
+                  <Button onClick={handleEnterDemoMode} className="gap-2">
+                    <Beaker className="h-4 w-4" />
+                    进入示例环境
+                  </Button>
+                )}
+                <Button variant="outline" asChild>
+                  <Link href="/settings">填写 API Key</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="panel-tint-jade overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <ShieldAlert className="h-5 w-5 text-[hsl(var(--signal-jade))]" />
+                隐私与运行方式
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <div className="flex items-start gap-3 rounded-[20px] border border-border/60 bg-background/30 p-3.5">
+                <Database className="mt-0.5 h-4 w-4 flex-shrink-0 text-[hsl(var(--signal-jade))]" />
+                <span>档案、JD、匹配结果、生成简历和 AI 设置都只保存在当前浏览器。</span>
+              </div>
+              <div className="flex items-start gap-3 rounded-[20px] border border-border/60 bg-background/30 p-3.5">
+                <Cpu className="mt-0.5 h-4 w-4 flex-shrink-0 text-[hsl(var(--signal-solar))]" />
+                <span>LLM 请求由前端直接发往你填写的 OpenAI 兼容接口，服务器不做中转。</span>
+              </div>
+              <div className="flex items-start gap-3 rounded-[20px] border border-border/60 bg-background/30 p-3.5">
+                <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-[hsl(var(--signal-gold))]" />
+                <span>服务端不收集你的 API Key、简历文本、JD 内容或生成结果。</span>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
 
       {!hasData ? (
         <EmptyState

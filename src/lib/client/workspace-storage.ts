@@ -7,12 +7,24 @@ import type { Item, ItemData, ItemSource, ItemType } from '@/lib/types/item';
 import { ITEM_ID_PREFIXES } from '@/lib/types/item';
 import type { Contact, Profile } from '@/lib/types/profile';
 
-const WORKSPACE_STORAGE_KEY = 'darkforest.workspace.v1';
+export const WORKSPACE_STORAGE_KEY = 'darkforest.workspace.v1';
 const WORKSPACE_CORRUPT_BACKUP_KEY = 'darkforest.workspace.corrupt-backup';
 const WORKSPACE_VERSION = 1;
 
 export const PROFILE_DEFAULT_ID = 'profile_default';
 export const WORKSPACE_UPDATED_EVENT = 'darkforest:workspace-updated';
+
+export type WorkspaceQueryScope =
+  | 'profile'
+  | 'items'
+  | 'jds'
+  | 'match'
+  | 'generate'
+  | 'all';
+
+export interface WorkspaceUpdatedDetail {
+  scopes: WorkspaceQueryScope[];
+}
 
 export interface WorkspaceSnapshot {
   version: number;
@@ -204,9 +216,24 @@ function readWorkspaceState(): {
   };
 }
 
-function persistWorkspace(snapshot: WorkspaceSnapshot) {
+function persistWorkspace(
+  snapshot: WorkspaceSnapshot,
+  scopes: WorkspaceQueryScope[] = ['all']
+) {
   window.localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(snapshot));
-  window.dispatchEvent(new CustomEvent(WORKSPACE_UPDATED_EVENT));
+  window.dispatchEvent(
+    new CustomEvent<WorkspaceUpdatedDetail>(WORKSPACE_UPDATED_EVENT, {
+      detail: { scopes },
+    })
+  );
+}
+
+export function replaceWorkspace(
+  snapshot: WorkspaceSnapshot,
+  scopes: WorkspaceQueryScope[] = ['all']
+) {
+  persistWorkspace(snapshot, scopes);
+  return snapshot;
 }
 
 export function getWorkspace(): WorkspaceSnapshot {
@@ -222,7 +249,8 @@ export function getWorkspace(): WorkspaceSnapshot {
 }
 
 function updateWorkspace(
-  updater: (current: WorkspaceSnapshot) => WorkspaceSnapshot
+  updater: (current: WorkspaceSnapshot) => WorkspaceSnapshot,
+  scopes: WorkspaceQueryScope[] = ['all']
 ): WorkspaceSnapshot {
   const current = readWorkspaceState();
   if (current.corrupt && current.raw) {
@@ -230,14 +258,13 @@ function updateWorkspace(
   }
 
   const next = updater(current.snapshot);
-  persistWorkspace(next);
+  persistWorkspace(next, scopes);
   return next;
 }
 
 export function resetWorkspace() {
   const next = createEmptyWorkspace();
-  persistWorkspace(next);
-  return next;
+  return replaceWorkspace(next);
 }
 
 export function getProfile() {
@@ -262,7 +289,7 @@ export function updateProfile(
       ...workspace,
       profile: nextProfile,
     };
-  });
+  }, ['profile']);
 
   return updatedProfile;
 }
@@ -305,7 +332,7 @@ export function createItem(type: ItemType, data: ItemData) {
   updateWorkspace((workspace) => ({
     ...workspace,
     items: [...workspace.items, item],
-  }));
+  }), ['items']);
 
   return item;
 }
@@ -330,7 +357,7 @@ export function updateItem(input: UpdateItemInput) {
       updatedItem = nextItem;
       return nextItem;
     }),
-  }));
+  }), ['items']);
 
   if (!updatedItem) {
     throw new Error(`Item not found: ${input.id}`);
@@ -343,7 +370,7 @@ export function deleteItem(id: string) {
   updateWorkspace((workspace) => ({
     ...workspace,
     items: workspace.items.filter((item) => item.id !== id),
-  }));
+  }), ['items']);
 
   return id;
 }
@@ -375,7 +402,7 @@ export function reorderItems(items: Array<{ id: string; sortOrder: number }>) {
         updatedAt: nowIso(),
       };
     }),
-  }));
+  }), ['items']);
 }
 
 export function getItemDeduplicationKey(type: ItemType, data: ItemData | Item): string | null {
@@ -436,7 +463,7 @@ export function createJD(rawText: string, parsed: ParsedJD | null) {
   updateWorkspace((workspace) => ({
     ...workspace,
     jds: [jd, ...workspace.jds],
-  }));
+  }), ['jds']);
 
   return jd;
 }
@@ -447,7 +474,7 @@ export function deleteJD(id: string) {
     jds: workspace.jds.filter((jd) => jd.id !== id),
     matchResults: workspace.matchResults.filter((result) => result.jdId !== id),
     generatedResumes: workspace.generatedResumes.filter((resume) => resume.jdId !== id),
-  }));
+  }), ['jds', 'match', 'generate']);
 
   return id;
 }
@@ -475,7 +502,7 @@ export function createMatchResult(
   updateWorkspace((workspace) => ({
     ...workspace,
     matchResults: [result, ...workspace.matchResults],
-  }));
+  }), ['match']);
 
   return result;
 }
@@ -485,7 +512,7 @@ export function deleteMatchResult(id: string) {
     ...workspace,
     matchResults: workspace.matchResults.filter((result) => result.id !== id),
     generatedResumes: workspace.generatedResumes.filter((resume) => resume.matchResultId !== id),
-  }));
+  }), ['match', 'generate']);
 
   return id;
 }
@@ -517,7 +544,7 @@ export function createGeneratedResume(input: {
   updateWorkspace((workspace) => ({
     ...workspace,
     generatedResumes: [resume, ...workspace.generatedResumes],
-  }));
+  }), ['generate']);
 
   return resume;
 }
@@ -526,7 +553,7 @@ export function deleteGeneratedResume(id: string) {
   updateWorkspace((workspace) => ({
     ...workspace,
     generatedResumes: workspace.generatedResumes.filter((resume) => resume.id !== id),
-  }));
+  }), ['generate']);
 
   return id;
 }
@@ -535,6 +562,11 @@ export function importParsedProfile(input: ImportWorkspaceInput): ImportWorkspac
   const selectedItems = input.items.filter((item) => item.selected);
   let importedCount = 0;
   let skippedDuplicates = 0;
+
+  const affectedScopes: WorkspaceQueryScope[] =
+    input.mode === 'replace'
+      ? ['profile', 'items', 'match', 'generate']
+      : ['profile', 'items'];
 
   updateWorkspace((workspace) => {
     const timestamp = nowIso();
@@ -603,7 +635,7 @@ export function importParsedProfile(input: ImportWorkspaceInput): ImportWorkspac
       matchResults: input.mode === 'replace' ? [] : workspace.matchResults,
       generatedResumes: input.mode === 'replace' ? [] : workspace.generatedResumes,
     };
-  });
+  }, affectedScopes);
 
   return {
     imported: importedCount,

@@ -22,6 +22,7 @@ import {
   Sparkles,
   Settings2,
 } from 'lucide-react';
+import { useDemoMode } from '@/lib/hooks/useDemoMode';
 
 const navItems = [
   { href: '/', label: '总览', icon: LayoutDashboard, slug: 'home' },
@@ -39,6 +40,8 @@ function SidebarContent({
   onNavigate?: () => void;
   mobile?: boolean;
 }) {
+  const { isDemoMode } = useDemoMode();
+
   return (
     <div
       className={cn(
@@ -123,13 +126,20 @@ function SidebarContent({
       </nav>
 
       <div className="relative mt-5 rounded-2xl border border-border/60 bg-[linear-gradient(180deg,hsl(var(--background)/0.44),hsl(var(--background-alt)/0.26))] p-4 shadow-[inset_0_1px_0_hsl(0_0%_100%/0.06)]">
-        <p className="text-[10px] uppercase tracking-[0.38em] text-muted-foreground">系统状态</p>
+        <p className="text-[10px] uppercase tracking-[0.38em] text-muted-foreground">数据隐私安全性</p>
         <div className="mt-3 flex items-center gap-2">
-          <span className="cyber-dot inline-block h-2.5 w-2.5 rounded-full bg-[hsl(var(--signal-jade))]" />
-          <span className="text-sm font-medium">系统在线</span>
+          <span
+            className={cn(
+              'cyber-dot inline-block h-2.5 w-2.5 rounded-full',
+              isDemoMode ? 'bg-[hsl(var(--signal-solar))]' : 'bg-[hsl(var(--signal-jade))]'
+            )}
+          />
+          <span className="text-sm font-medium">
+            {isDemoMode ? '示例环境已开启' : '浏览器本地存储'}
+          </span>
         </div>
         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          让简历像可导航的地图，而不只是静态 PDF。
+          数据全部保存在当前浏览器，LLM 请求由前端直接发往你配置的模型服务，服务器不收集你的档案或 API Key。
         </p>
 
         <Link

@@ -24,6 +24,8 @@ import {
   hasStoredAISettings,
   saveAISettings,
 } from '@/lib/client/ai-settings';
+import { enterDemoMode, exitDemoMode } from '@/lib/client/demo-mode';
+import { useDemoMode } from '@/lib/hooks/useDemoMode';
 
 const PROVIDER_GUIDES = [
   {
@@ -60,6 +62,7 @@ export default function SettingsPage() {
   const [testDialogOpen, setTestDialogOpen] = useState(false);
   const [testModel, setTestModel] = useState('');
   const [testMessage, setTestMessage] = useState('');
+  const { isDemoMode, hasBackup } = useDemoMode();
 
   useEffect(() => {
     const settings = getStoredAISettings();
@@ -118,6 +121,16 @@ export default function SettingsPage() {
     setBaseURL('');
     setModelName(DEFAULT_AI_MODEL);
     toast.success('已清空当前浏览器中的 AI 设置');
+  }
+
+  function handleEnterDemoMode() {
+    enterDemoMode();
+    toast.success('已进入示例环境');
+  }
+
+  function handleExitDemoMode() {
+    exitDemoMode();
+    toast.success(hasBackup ? '已退出示例环境，并恢复你原来的本地工作区' : '已退出示例环境，并清空示例数据');
   }
 
   return (
@@ -198,6 +211,14 @@ export default function SettingsPage() {
 
             <Alert>
               <ShieldAlert className="h-4 w-4" />
+              <AlertTitle>隐私与运行方式</AlertTitle>
+              <AlertDescription>
+                API Key 只保存在当前浏览器。LLM 请求由前端直接发往你填写的 OpenAI 兼容接口，服务器不代理、不存储你的 API Key、简历、JD 或生成结果。
+              </AlertDescription>
+            </Alert>
+
+            <Alert>
+              <AlertTriangle className="h-4 w-4" />
               <AlertTitle>使用提醒</AlertTitle>
               <AlertDescription>
                 这些设置只对当前设备生效。如果你更换浏览器、使用无痕窗口，或清理站点数据，需要重新填写。
@@ -233,6 +254,33 @@ export default function SettingsPage() {
         </Card>
 
         <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Sparkles className="h-4 w-4 text-[hsl(var(--signal-solar))]" />
+                不想先填 Key？
+              </CardTitle>
+              <CardDescription>
+                可以直接进入一个免 API Key 的示例环境，先浏览完整工作流，再决定是否接入你自己的模型服务。
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-[22px] border border-border/70 bg-background/30 p-4 text-sm leading-6 text-muted-foreground">
+                示例环境会预置档案、JD、匹配结果和简历。真正需要发起模型请求时，再回来填写 API Key 即可。
+              </div>
+              <div className="flex flex-wrap gap-3">
+                {isDemoMode ? (
+                  <Button onClick={handleExitDemoMode}>退出示例环境</Button>
+                ) : (
+                  <Button onClick={handleEnterDemoMode}>进入示例环境</Button>
+                )}
+                <Button variant="outline" asChild>
+                  <Link href="/">回到总览</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">

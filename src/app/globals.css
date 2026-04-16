@@ -537,4 +537,165 @@ body > div {
     font-weight: 600;
   }
 
+  .resume-markdown {
+    color: hsl(var(--foreground));
+    line-height: 1.75;
+  }
+
+  .resume-markdown > :first-child {
+    margin-top: 0;
+  }
+
+  .resume-markdown > :last-child {
+    margin-bottom: 0;
+  }
+
+  .resume-markdown h1,
+  .resume-markdown h2,
+  .resume-markdown h3 {
+    margin-top: 1.8rem;
+    margin-bottom: 0.8rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: hsl(var(--foreground));
+  }
+
+  .resume-markdown h1 {
+    margin-top: 0;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid hsl(var(--border) / 0.85);
+    font-size: 1.9rem;
+    line-height: 1.12;
+  }
+
+  .resume-markdown h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding-top: 0.2rem;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+
+  .resume-markdown h2::before {
+    content: '';
+    width: 0.8rem;
+    height: 0.8rem;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: linear-gradient(
+      135deg,
+      hsl(var(--signal-solar)),
+      hsl(var(--signal-rose))
+    );
+    box-shadow: 0 0 18px hsl(var(--signal-solar) / 0.28);
+  }
+
+  .resume-markdown h3 {
+    font-size: 1rem;
+  }
+
+  .resume-markdown p,
+  .resume-markdown ul,
+  .resume-markdown ol,
+  .resume-markdown blockquote,
+  .resume-markdown pre,
+  .resume-markdown .resume-markdown-table-wrap {
+    margin: 0.8rem 0;
+  }
+
+  .resume-markdown ul,
+  .resume-markdown ol {
+    padding-left: 1.25rem;
+  }
+
+  .resume-markdown li {
+    margin: 0.35rem 0;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .resume-markdown li::marker {
+    color: hsl(var(--signal-solar));
+  }
+
+  .resume-markdown strong {
+    font-weight: 700;
+    color: hsl(var(--foreground));
+  }
+
+  .resume-markdown em {
+    color: hsl(var(--foreground));
+  }
+
+  .resume-markdown a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    text-decoration-color: hsl(var(--primary) / 0.4);
+    text-underline-offset: 0.18em;
+  }
+
+  .resume-markdown hr {
+    margin: 1.2rem 0;
+    border: 0;
+    border-top: 1px solid hsl(var(--border) / 0.7);
+  }
+
+  .resume-markdown blockquote {
+    border-left: 3px solid hsl(var(--signal-jade) / 0.65);
+    border-radius: 0 1rem 1rem 0;
+    background: hsl(var(--signal-jade) / 0.08);
+    padding: 0.9rem 1rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .resume-markdown code {
+    border: 1px solid hsl(var(--border) / 0.7);
+    border-radius: 0.55rem;
+    background: hsl(var(--background-alt) / 0.72);
+    padding: 0.15rem 0.4rem;
+    font-size: 0.9em;
+  }
+
+  .resume-markdown pre {
+    overflow-x: auto;
+    border: 1px solid hsl(var(--border) / 0.75);
+    border-radius: 1rem;
+    background: hsl(var(--background-alt) / 0.86);
+    padding: 1rem 1.1rem;
+  }
+
+  .resume-markdown pre code {
+    border: 0;
+    background: transparent;
+    padding: 0;
+  }
+
+  .resume-markdown-table-wrap {
+    overflow-x: auto;
+    border: 1px solid hsl(var(--border) / 0.75);
+    border-radius: 1rem;
+  }
+
+  .resume-markdown table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .resume-markdown thead {
+    background: hsl(var(--background-alt) / 0.86);
+  }
+
+  .resume-markdown th,
+  .resume-markdown td {
+    border-bottom: 1px solid hsl(var(--border) / 0.65);
+    padding: 0.7rem 0.85rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .resume-markdown td {
+    color: hsl(var(--muted-foreground));
+  }
+
 }
