@@ -28,7 +28,7 @@ export function useJDs() {
 export function useJD(id: string) {
   return useQuery({
     queryKey: jdKeys.detail(id),
-    queryFn: async () => getStoredJD(id),
+    queryFn: async () => getStoredJD(id) ?? null,
     enabled: Boolean(id),
   });
 }

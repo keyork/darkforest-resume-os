@@ -4,18 +4,19 @@ import Link from 'next/link';
 import { Beaker, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { exitDemoMode } from '@/lib/client/demo-mode';
 import { useDemoMode } from '@/lib/hooks/useDemoMode';
+import { useExitDemoModeToOverview } from '@/lib/hooks/useExitDemoModeToOverview';
 
 export function AppModeBanner() {
   const { isDemoMode, hasBackup, mounted } = useDemoMode();
+  const exitDemoModeToOverview = useExitDemoModeToOverview();
 
   if (!mounted || !isDemoMode) {
     return null;
   }
 
   function handleExitDemoMode() {
-    exitDemoMode();
+    exitDemoModeToOverview();
     toast.success(hasBackup ? '已退出示例环境，并恢复你原来的本地工作区' : '已退出示例环境，并清空示例数据');
   }
 

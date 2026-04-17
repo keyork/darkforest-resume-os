@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useProfile, useUpdateProfile, useResetProfile } from '@/lib/hooks/useProfile';
+import { useItems } from '@/lib/hooks/useItems';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,45 +41,64 @@ const profileSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
+const EMPTY_PROFILE_FORM_VALUES: ProfileFormValues = {
+  name: '',
+  title: '',
+  summary: '',
+  email: '',
+  phone: '',
+  location: '',
+  website: '',
+  linkedin: '',
+  github: '',
+};
+
+function buildProfileFormValues(profile: {
+  name: string;
+  title: string;
+  summary: string;
+  contact: Contact;
+}): ProfileFormValues {
+  return {
+    name: profile.name,
+    title: profile.title,
+    summary: profile.summary,
+    email: profile.contact.email ?? '',
+    phone: profile.contact.phone ?? '',
+    location: profile.contact.location ?? '',
+    website: profile.contact.website ?? '',
+    linkedin: profile.contact.linkedin ?? '',
+    github: profile.contact.github ?? '',
+  };
+}
+
 export function ProfileHeader() {
   const { data: profile, isLoading } = useProfile();
+  const { data: items = [] } = useItems();
   const updateProfile = useUpdateProfile();
   const resetProfile = useResetProfile();
   const [isEditing, setIsEditing] = useState(false);
 
   async function handleReset() {
     await resetProfile.mutateAsync();
+    form.reset(EMPTY_PROFILE_FORM_VALUES);
+    setIsEditing(false);
     toast.success('简历数据已清空');
   }
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-      name: '',
-      title: '',
-      summary: '',
-      email: '',
-      phone: '',
-      location: '',
-      website: '',
-      linkedin: '',
-      github: '',
-    },
+    defaultValues: EMPTY_PROFILE_FORM_VALUES,
   });
+
+  useEffect(() => {
+    if (!profile || isEditing) return;
+    form.reset(buildProfileFormValues(profile));
+  }, [form, isEditing, profile]);
 
   function startEdit() {
     if (!profile) return;
-    form.reset({
-      name: profile.name,
-      title: profile.title,
-      summary: profile.summary,
-      email: profile.contact.email ?? '',
-      phone: profile.contact.phone ?? '',
-      location: profile.contact.location ?? '',
-      website: profile.contact.website ?? '',
-      linkedin: profile.contact.linkedin ?? '',
-      github: profile.contact.github ?? '',
-    });
+    form.reset(buildProfileFormValues(profile));
     setIsEditing(true);
   }
 
@@ -202,7 +222,9 @@ export function ProfileHeader() {
     { icon: Github, value: profile.contact.github, label: 'GitHub' },
   ].filter((c) => c.value);
 
-  const isEmpty = !profile.name && !profile.title && !profile.summary;
+  const hasContact = Object.values(profile.contact).some(Boolean);
+  const isEmpty = !profile.name && !profile.title && !profile.summary && !hasContact;
+  const canReset = !isEmpty || items.length > 0;
 
   return (
     <div
@@ -257,36 +279,38 @@ export function ProfileHeader() {
             <Pencil className="h-4 w-4" />
           </Button>
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground hover:text-destructive"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>清空所有简历数据？</AlertDialogTitle>
-                <AlertDialogDescription>
-                  此操作将删除所有技能、工作经历、项目、教育背景和证书，并清空个人信息。
-                  不可撤销，建议先导出后再操作。
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>取消</AlertDialogCancel>
-                <AlertDialogAction
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  onClick={handleReset}
+          {canReset && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  确认清空
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>清空所有简历数据？</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    此操作将删除所有技能、工作经历、项目、教育背景和证书，并清空个人信息。
+                    不可撤销，建议先导出后再操作。
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={handleReset}
+                  >
+                    确认清空
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </div>
     </div>

@@ -40,7 +40,7 @@ export function useGeneratedResumes() {
 export function useGeneratedResume(id: string) {
   return useQuery({
     queryKey: generateKeys.detail(id),
-    queryFn: async () => getStoredGeneratedResume(id),
+    queryFn: async () => getStoredGeneratedResume(id) ?? null,
     enabled: Boolean(id),
   });
 }

@@ -59,7 +59,7 @@ export function useMatchResults() {
 export function useMatchResult(id: string) {
   return useQuery({
     queryKey: matchKeys.detail(id),
-    queryFn: async () => getStoredMatchResult(id),
+    queryFn: async () => getStoredMatchResult(id) ?? null,
     enabled: Boolean(id),
   });
 }

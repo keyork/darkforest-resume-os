@@ -10,8 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ImportModal } from '@/components/profile/ImportModal';
 import { hasStoredAISettings } from '@/lib/client/ai-settings';
-import { enterDemoMode, exitDemoMode } from '@/lib/client/demo-mode';
+import { enterDemoMode } from '@/lib/client/demo-mode';
 import { useDemoMode } from '@/lib/hooks/useDemoMode';
+import { useExitDemoModeToOverview } from '@/lib/hooks/useExitDemoModeToOverview';
 import { useItems } from '@/lib/hooks/useItems';
 import { useMatchResults } from '@/lib/hooks/useMatch';
 import { useProfile } from '@/lib/hooks/useProfile';
@@ -39,6 +40,7 @@ export function DashboardClient() {
   const [importOpen, setImportOpen] = useState(false);
   const [hasAIConfig, setHasAIConfig] = useState(false);
   const { isDemoMode, hasBackup, mounted: demoMounted } = useDemoMode();
+  const exitDemoModeToOverview = useExitDemoModeToOverview();
 
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: skills } = useItems('skill');
@@ -68,7 +70,7 @@ export function DashboardClient() {
   }
 
   function handleExitDemoMode() {
-    exitDemoMode();
+    exitDemoModeToOverview();
     toast.success(hasBackup ? '已退出示例环境，并恢复你原来的本地工作区' : '已退出示例环境，并清空示例数据');
   }
 
@@ -133,15 +135,15 @@ export function DashboardClient() {
             <div className="space-y-3">
               <div className="flex min-w-0 flex-col items-start gap-3 sm:flex-row sm:items-center">
                 <TreePine className="h-7 w-7 text-primary" />
-                <h1 className="page-hero-title min-w-0 pb-1 text-3xl font-semibold md:text-4xl xl:text-[2.8rem]">
+                <h1 className="page-hero-title min-w-0 pb-2 text-3xl font-semibold md:text-4xl xl:text-[2.8rem]">
                   {profileLoading ? (
                     <Skeleton className="h-10 w-56" />
                   ) : profile?.name ? (
-                    <span className="inline-block text-gradient-cyber">
+                    <span className="inline-block leading-[1.15] text-gradient-cyber">
                       {`你好，${profile.name}`}
                     </span>
                   ) : (
-                    <span className="inline-block text-gradient-cyber">
+                    <span className="inline-block leading-[1.15] text-gradient-cyber">
                       欢迎进入你的职业图谱
                     </span>
                   )}

@@ -32,7 +32,7 @@ export function useItems(type?: ItemType, visible?: boolean) {
 export function useItem(id: string) {
   return useQuery({
     queryKey: itemKeys.detail(id),
-    queryFn: async () => getStoredItem(id),
+    queryFn: async () => getStoredItem(id) ?? null,
     enabled: Boolean(id),
   });
 }

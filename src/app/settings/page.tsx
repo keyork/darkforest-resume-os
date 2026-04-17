@@ -24,8 +24,9 @@ import {
   hasStoredAISettings,
   saveAISettings,
 } from '@/lib/client/ai-settings';
-import { enterDemoMode, exitDemoMode } from '@/lib/client/demo-mode';
+import { enterDemoMode } from '@/lib/client/demo-mode';
 import { useDemoMode } from '@/lib/hooks/useDemoMode';
+import { useExitDemoModeToOverview } from '@/lib/hooks/useExitDemoModeToOverview';
 
 const PROVIDER_GUIDES = [
   {
@@ -63,6 +64,7 @@ export default function SettingsPage() {
   const [testModel, setTestModel] = useState('');
   const [testMessage, setTestMessage] = useState('');
   const { isDemoMode, hasBackup } = useDemoMode();
+  const exitDemoModeToOverview = useExitDemoModeToOverview();
 
   useEffect(() => {
     const settings = getStoredAISettings();
@@ -129,7 +131,7 @@ export default function SettingsPage() {
   }
 
   function handleExitDemoMode() {
-    exitDemoMode();
+    exitDemoModeToOverview();
     toast.success(hasBackup ? '已退出示例环境，并恢复你原来的本地工作区' : '已退出示例环境，并清空示例数据');
   }
 

@@ -6,7 +6,8 @@ const require = createRequire(import.meta.url);
 export type SupportedMimeType =
   | 'application/pdf'
   | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  | 'text/plain';
+  | 'text/plain'
+  | 'text/markdown';
 
 export async function parseFileToText(
   buffer: Buffer,
@@ -37,7 +38,7 @@ export async function parseFileToText(
   }
 
   if (mime === 'application/msword') {
-    throw new Error('Legacy .doc files are not supported. Please convert the file to .docx, .pdf, or .txt first.');
+    throw new Error('Legacy .doc files are not supported. Please convert the file to .docx, .pdf, .txt, or .md first.');
   }
 
   if (mime === 'text/plain' || mime.startsWith('text/')) {
@@ -54,6 +55,8 @@ export function getFileMimeType(filename: string): string {
     docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     doc: 'application/msword',
     txt: 'text/plain',
+    md: 'text/markdown',
+    markdown: 'text/markdown',
   };
   return mimeMap[ext] ?? 'text/plain';
 }

@@ -254,7 +254,7 @@
 **左栏（40%宽）**：JD 输入区
 
 - 大文本框，用于粘贴 JD 文本
-- 文本框上方有："粘贴文本" 和 "上传文件" 两个 Tab（上传支持 PDF/DOCX/TXT）
+- 文本框上方有："粘贴文本" 和 "上传文件" 两个 Tab（上传支持 PDF/DOCX/TXT/Markdown）
 - 下方：已保存的 JD 历史列表（点击可快速加载）
 - 底部："开始分析" 按钮
 
@@ -332,7 +332,7 @@
 Step 1 — 上传文件
 
 - 支持拖拽上传或点击选择
-- 支持格式：PDF、DOCX、TXT
+- 支持格式：PDF、DOCX、TXT、Markdown
 - 也可以直接粘贴简历文本
 
 Step 2 — AI 解析中
@@ -559,7 +559,7 @@ resume-agent/
 │   │   │   └── resume.ts         # 简历输出类型
 │   │   │
 │   │   └── utils/
-│   │       ├── file-parser.ts    # 文件解析（PDF/DOCX/TXT → 文本）
+│   │       ├── file-parser.ts    # 文件解析（PDF/DOCX/TXT/Markdown → 文本）
 │   │       └── export.ts         # 简历导出工具
 │   │
 │   └── components/
@@ -610,7 +610,7 @@ resume-agent/
 
 1. OPENAI SDK 封装 + Prompt 管理
 2. Profile Agent 实现（简历文本 → Item 列表）
-3. 文件解析工具（PDF/DOCX/TXT → 文本）
+3. 文件解析工具（PDF/DOCX/TXT/Markdown → 文本）
 4. ImportModal 完整交互（上传 → 解析 → 预览 → 确认导入）
 5. 去重检测逻辑
 

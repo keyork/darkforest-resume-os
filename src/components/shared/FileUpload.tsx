@@ -12,7 +12,7 @@ interface FileUploadProps {
   disabled?: boolean;
 }
 
-const DEFAULT_ACCEPT = '.pdf,.docx,.txt';
+const DEFAULT_ACCEPT = '.pdf,.docx,.txt,.md,.markdown';
 
 export function FileUpload({
   onFile,
@@ -97,7 +97,7 @@ export function FileUpload({
             <div>
               <p className="font-medium text-sm">拖拽文件到此处，或点击选择</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                支持 PDF、DOCX、TXT 格式
+                支持 PDF、DOCX、TXT、Markdown 格式
               </p>
             </div>
           </>
