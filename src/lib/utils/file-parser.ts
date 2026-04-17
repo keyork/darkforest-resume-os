@@ -3,6 +3,24 @@ import mammoth from 'mammoth';
 
 const require = createRequire(import.meta.url);
 
+function ensurePdfRuntimeGlobals() {
+  const runtime = globalThis as Record<string, unknown>;
+
+  if (runtime.DOMMatrix && runtime.ImageData && runtime.Path2D) {
+    return;
+  }
+
+  const { DOMMatrix, ImageData, Path2D } = require('@napi-rs/canvas') as {
+    DOMMatrix: unknown;
+    ImageData: unknown;
+    Path2D: unknown;
+  };
+
+  runtime.DOMMatrix ??= DOMMatrix;
+  runtime.ImageData ??= ImageData;
+  runtime.Path2D ??= Path2D;
+}
+
 export type SupportedMimeType =
   | 'application/pdf'
   | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
@@ -16,6 +34,8 @@ export async function parseFileToText(
   const mime = mimeType.toLowerCase();
 
   if (mime === 'application/pdf') {
+    ensurePdfRuntimeGlobals();
+
     const { PDFParse } = require('pdf-parse') as {
       PDFParse: new (options: { data: Buffer }) => {
         getText: () => Promise<{ text?: string }>;
